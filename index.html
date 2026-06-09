@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QORUS — Reporte Semanal Comercial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=PT+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f2f2f0;
+    --surface: #ffffff;
+    --border: #e0dedd;
+    --text: #111111;
+    --muted: #777777;
+    --accent: #000000;
+    --accent-light: #f5f5f3;
+    --qorus-green: #AADB1E;
+    --qorus-green-dark: #88B010;
+    --qorus-pink: #E5007E;
+    --qorus-blue: #0032A0;
+    --qorus-blue-light: #e8eeff;
+    --danger: #b91c1c;
+    --danger-light: #fef2f2;
+    --warn: #92400e;
+    --warn-light: #fffbeb;
+    --ok: #166534;
+    --ok-light: #f0fdf4;
+    --blue: #0032A0;
+    --blue-light: #e8eeff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; }
+
+  /* ---- AUTH OVERLAY ---- */
+  #auth-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #000000;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+  #auth-overlay.hidden { display: none; }
+
+  .auth-stripe {
+    display: flex; width: 360px; height: 4px; margin-bottom: 0;
+    border-radius: 3px 3px 0 0; overflow: hidden;
+  }
+  .auth-stripe span { flex: 1; }
+  .auth-stripe .s1 { background: var(--qorus-green); }
+  .auth-stripe .s2 { background: var(--qorus-pink); }
+  .auth-stripe .s3 { background: var(--qorus-blue); }
+  .auth-stripe .s4 { background: #ffffff; }
+
+  .auth-card {
+    background: #fff;
+    border-radius: 0 0 6px 6px;
+    width: 360px;
+    padding: 32px 36px 28px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  }
+  .auth-logo {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .auth-logo .brand-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px; letter-spacing: 4px;
+    color: #000000; line-height: 1;
+  }
+  .auth-logo .brand-sub {
+    font-family: 'PT Mono', monospace;
+    font-size: 9px; color: var(--muted); letter-spacing: 1.5px; margin-top: 4px;
+    text-transform: uppercase;
+  }
+  .auth-title {
+    font-family: 'PT Mono', monospace;
+    font-size: 10px; font-weight: bold; margin-bottom: 20px; color: var(--muted);
+    border-bottom: 1px solid var(--border); padding-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label {
+    display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--muted); margin-bottom: 5px; font-family: 'PT Mono', monospace;
+  }
+  .auth-field input {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+    border-radius: 3px; font-size: 13px; font-family: inherit;
+    background: var(--bg); color: var(--text);
+    transition: border-color 0.15s;
+  }
+  .auth-field input:focus { outline: none; border-color: #000; background: #fff; }
+  .auth-btn {
+    width: 100%; padding: 11px; background: #000000; color: #fff;
+    border: none; border-radius: 3px; font-size: 12px; font-family: 'PT Mono', monospace;
+    font-weight: bold; cursor: pointer; letter-spacing: 2px; margin-top: 4px;
+    text-transform: uppercase;
+    transition: background 0.15s;
+  }
+  .auth-btn:hover { background: var(--qorus-blue); }
+  .auth-error {
+    background: var(--danger-light); color: var(--danger);
+    border: 1px solid #fecaca; border-radius: 3px;
+    padding: 8px 10px; font-size: 12px; margin-bottom: 14px; display: none;
+  }
+  .auth-error.visible { display: block; }
+  .auth-success {
+    background: var(--ok-light); color: var(--ok);
+    border: 1px solid #bbf7d0; border-radius: 3px;
+    padding: 8px 10px; font-size: 12px; margin-bottom: 14px; display: none;
+  }
+  .auth-success.visible { display: block; }
+  /* auth-switch / auth-mode removed (single password mode) */
+
+  /* user pill in header */
+  .user-pill {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: #888;
+  }
+  .user-pill strong { color: #fff; font-family: 'PT Mono', monospace; font-size: 11px; }
+  .logout-btn {
+    padding: 3px 10px; border-radius: 2px; font-size: 10px; cursor: pointer;
+    background: transparent; border: 1px solid #444; color: #888;
+    font-family: 'PT Mono', monospace; letter-spacing: 1px; text-transform: uppercase;
+    transition: background 0.1s, color 0.1s;
+  }
+  .logout-btn:hover { background: var(--qorus-pink); border-color: var(--qorus-pink); color: #fff; }
+
+  header {
+    background: #000000;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+  .header-inner {
+    padding: 18px 32px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 2px; }
+  .header-brand-row { display: flex; align-items: baseline; gap: 16px; }
+  header .brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px; letter-spacing: 4px; line-height: 1;
+    color: #ffffff;
+  }
+  header .header-tagline {
+    font-family: 'PT Mono', monospace;
+    font-size: 9px; color: #888; letter-spacing: 2px;
+    text-transform: uppercase; margin-top: 3px;
+  }
+  header .header-report {
+    font-family: 'PT Mono', monospace;
+    font-size: 9px; color: var(--qorus-green); letter-spacing: 2.5px;
+    text-transform: uppercase; margin-top: 4px;
+  }
+  .header-right {
+    text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  }
+  .header-date {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 2px; color: #ffffff; line-height: 1;
+  }
+  .header-conf {
+    font-family: 'PT Mono', monospace;
+    font-size: 9px; color: #555; letter-spacing: 1px; text-transform: uppercase;
+  }
+  /* 4-color stripe below header */
+  .header-stripe {
+    display: flex; height: 4px;
+  }
+  .hs { flex: 1; }
+  .hs-green { background: var(--qorus-green); }
+  .hs-pink  { background: var(--qorus-pink); }
+  .hs-blue  { background: var(--qorus-blue); }
+  .hs-white { background: #ffffff; }
+
+  .kpi-bar {
+    display: flex;
+    gap: 0;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+  }
+  .kpi {
+    padding: 14px 22px 12px;
+    border-right: 1px solid var(--border);
+    min-width: 140px;
+    position: relative;
+  }
+  .kpi:first-child { padding-left: 8px; }
+  .kpi::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: transparent;
+  }
+  .kpi:nth-child(1)::before { background: var(--qorus-green); }
+  .kpi:nth-child(2)::before { background: var(--qorus-blue); }
+  .kpi:nth-child(3)::before { background: var(--qorus-pink); }
+  .kpi:nth-child(4)::before { background: var(--qorus-green); }
+  .kpi:nth-child(5)::before { background: var(--qorus-blue); }
+  .kpi:nth-child(6)::before { background: var(--danger); }
+  .kpi:first-child::before { left: 0; }
+  .kpi-label {
+    font-family: 'PT Mono', monospace;
+    font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px;
+  }
+  .kpi-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; color: var(--text); margin-top: 3px; letter-spacing: 1px; line-height: 1;
+  }
+  .kpi-sub {
+    font-family: 'PT Mono', monospace;
+    font-size: 9px; color: var(--muted); margin-top: 2px; letter-spacing: 0.5px;
+  }
+
+  nav {
+    background: #ffffff;
+    border-bottom: 2px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+  }
+  .tab {
+    padding: 10px 18px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-family: 'PT Mono', monospace;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted);
+    transition: color 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: #000000; border-bottom-color: var(--qorus-green); font-weight: bold; }
+
+  main { padding: 28px 32px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 2px; color: var(--text); line-height: 1;
+  }
+  .section-title-bar {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title-bar::before {
+    content: ''; display: inline-block;
+    width: 16px; height: 3px; background: var(--qorus-green);
+  }
+  .section-count {
+    font-family: 'PT Mono', monospace;
+    font-size: 10px; color: var(--muted); margin-left: 6px; letter-spacing: 0.5px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 12px;
+    width: 220px;
+    font-family: inherit;
+    background: var(--surface);
+  }
+  .filter-select {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: inherit;
+    background: var(--surface);
+    cursor: pointer;
+  }
+  .btn {
+    padding: 6px 14px;
+    border-radius: 2px;
+    font-size: 10px;
+    cursor: pointer;
+    font-family: 'PT Mono', monospace;
+    letter-spacing: 1px; text-transform: uppercase;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: background 0.1s, color 0.1s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: #000000; color: #fff; border-color: #000000; }
+  .btn-primary:hover { background: var(--qorus-blue); border-color: var(--qorus-blue); }
+  .btn-sm { padding: 3px 8px; font-size: 9px; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th {
+    background: #111111;
+    padding: 9px 10px;
+    text-align: left;
+    font-family: 'PT Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #aaaaaa;
+    border-bottom: 1px solid #333;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+  }
+  thead th.sortable { cursor: pointer; user-select: none; }
+  thead th.sortable:hover { color: #ffffff; background: #1c1c1c; }
+  thead th.sort-asc::after  { content: ' ↑'; color: var(--qorus-green); }
+  thead th.sort-desc::after { content: ' ↓'; color: var(--qorus-green); }
+  tbody tr { border-bottom: 1px solid #f0eeec; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f8f7f5; }
+  td { padding: 7px 10px; vertical-align: middle; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'PT Mono', monospace; font-size: 11px; }
+  td.center { text-align: center; }
+
+  .editable {
+    cursor: text;
+    border-radius: 2px;
+    padding: 2px 4px;
+    min-width: 60px;
+    display: inline-block;
+    transition: background 0.1s;
+  }
+  .editable:hover { background: var(--accent-light); }
+  .editable:focus {
+    outline: 2px solid var(--accent);
+    background: #fff;
+    border-radius: 2px;
+  }
+  .editable[contenteditable="true"] { background: var(--accent-light); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  .badge-ok { background: var(--ok-light); color: var(--ok); }
+  .badge-warn { background: var(--warn-light); color: var(--warn); }
+  .badge-danger { background: var(--danger-light); color: var(--danger); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-gray { background: #f0ece6; color: var(--muted); }
+  .badge-neg { background: #fdf4ff; color: #7e22ce; }
+
+  .cartera-bar {
+    display: inline-block;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--danger);
+    opacity: 0.7;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+
+  .group-header td {
+    background: #f5f4f2;
+    font-family: 'PT Mono', monospace;
+    font-size: 9px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    padding: 6px 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .modified-indicator {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: #f59e0b;
+    border-radius: 50%;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .total-row td {
+    font-weight: bold;
+    background: #111111;
+    color: #ffffff;
+    border-top: 2px solid #333;
+    font-size: 11px;
+    font-family: 'PT Mono', monospace;
+  }
+
+  .save-bar {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 24px;
+    background: #000000;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: 'PT Mono', monospace;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    gap: 10px;
+    align-items: center;
+    z-index: 100;
+    border-left: 4px solid var(--qorus-green);
+  }
+  .save-bar.visible { display: flex; }
+
+  .empty { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; font-family: 'PT Mono', monospace; }
+
+  /* ---- FOOTER ---- */
+  footer {
+    background: #000000;
+    color: #fff;
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 40px;
+  }
+  footer .footer-brand {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px; font-weight: 400; color: #ffffff; letter-spacing: 0.5px;
+  }
+  footer .footer-tag {
+    font-family: 'PT Mono', monospace;
+    font-size: 10px; color: #666; letter-spacing: 2.5px; text-transform: uppercase;
+  }
+
+  @media print {
+    nav, .toolbar, .save-bar, .logout-btn { display: none; }
+    .panel { display: block !important; }
+    footer { position: fixed; bottom: 0; left: 0; right: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div class="auth-stripe">
+    <span class="s1"></span><span class="s2"></span><span class="s3"></span><span class="s4"></span>
+  </div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="brand-name">QORUS</div>
+      <div class="brand-sub">REPORTE SEMANAL · JUNTA COMERCIAL</div>
+    </div>
+    <div class="auth-title">Acceso al reporte</div>
+    <div id="login-error" class="auth-error"></div>
+    <div class="auth-field">
+      <label>Contraseña de acceso</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="auth-btn" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="header-brand-row">
+        <div class="brand">QORUS</div>
+      </div>
+      <div class="header-tagline">AL RITMO DE CIUDAD · MTY, NL, MEX</div>
+      <div class="header-report">REPORTE SEMANAL · JUNTA COMERCIAL</div>
+    </div>
+    <div class="header-right">
+      <div class="header-date">08 JUNIO 2026</div>
+      <div class="header-conf">Uso interno · Confidencial</div>
+      <div class="user-pill" id="user-pill" style="display:none;margin-top:8px;">
+        <button class="logout-btn" onclick="doLogout()">Salir</button>
+      </div>
+    </div>
+  </div>
+  <div class="header-stripe">
+    <div class="hs hs-green"></div>
+    <div class="hs hs-pink"></div>
+    <div class="hs hs-blue"></div>
+    <div class="hs hs-white"></div>
+  </div>
+</header>
+
+<div class="kpi-bar">
+  <div class="kpi">
+    <div class="kpi-label">Vendidas</div>
+    <div class="kpi-value">59</div>
+    <div class="kpi-sub">unidades totales</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Ventas Mayo 2026</div>
+    <div class="kpi-value">5</div>
+    <div class="kpi-sub">nuevas en mayo</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Separaciones Activas</div>
+    <div class="kpi-value">4</div>
+    <div class="kpi-sub">clientes + 10 Lobo</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Cobranza Mes (Jun 2026)</div>
+    <div class="kpi-value" style="font-size:20px;">$279,967</div>
+    <div class="kpi-sub">acumulado junio 2026</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Cobranza Semana (Jun 1–7)</div>
+    <div class="kpi-value" style="font-size:20px;">$279,967</div>
+    <div class="kpi-sub">lun 1 – dom 7 junio</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Cartera Vencida</div>
+    <div class="kpi-value" style="color:var(--danger);font-size:20px;">$1,925,746</div>
+    <div class="kpi-sub">16 unidades con adeudo</div>
+  </div>
+</div>
+
+<nav>
+  <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
+  <div class="tab" onclick="showTab('ventas')">Ventas <span style="color:var(--muted);font-weight:normal;">(59)</span></div>
+  <div class="tab" onclick="showTab('separaciones')">Separaciones <span style="color:var(--muted);font-weight:normal;">(14)</span></div>
+  <div class="tab" onclick="showTab('cartera')">Cobranza <span style="color:var(--muted);font-weight:normal;">(59)</span></div>
+  <div class="tab" onclick="showTab('qo')">QO Clientes <span style="color:var(--muted);font-weight:normal;">(61)</span></div>
+  <div class="tab" onclick="showTab('asesor')">Por Asesor</div>
+</nav>
+
+<main>
+
+<!-- DASHBOARD -->
+<div id="panel-dashboard" class="panel active">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--qorus-green);border-radius:3px;padding:18px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— Ventas por Asesor</div>
+      <div id="dash-asesor-chart"></div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--danger);border-radius:3px;padding:18px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— Cartera Vencida · Top 8 · Total $1,925,746</div>
+      <div id="dash-cartera-chart"></div>
+    </div>
+
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--qorus-blue);border-radius:3px;padding:18px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— QO Clientes · Estatus</div>
+      <div id="dash-qo-chart"></div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--qorus-pink);border-radius:3px;padding:18px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— Separaciones Activas</div>
+      <div id="dash-sep-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- VENTAS -->
+<div id="panel-ventas" class="panel">
+  <div class="section-header">
+    <div>
+      <span class="section-title">Ventas</span>
+      <span class="section-count" id="ventas-count"></span>
+    </div>
+    <div class="toolbar">
+      <input class="search-box" id="ventas-search" placeholder="Buscar cliente, unidad, asesor..." oninput="filterVentas()">
+      <select class="filter-select" id="ventas-asesor" onchange="filterVentas()">
+        <option value="">Todos los asesores</option>
+      </select>
+      <button class="btn btn-sm" onclick="exportTable('ventas-table','Ventas_Qorus')">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap" style="max-height:600px;overflow-y:auto;">
+    <table id="ventas-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th class="sortable" data-col="unidad" onclick="sortBy('ventas','unidad','str')">Unidad</th>
+          <th class="sortable" data-col="cliente" onclick="sortBy('ventas','cliente','str')">Cliente</th>
+          <th class="sortable" data-col="asesor" onclick="sortBy('ventas','asesor','str')">Asesor</th>
+          <th class="num sortable" data-col="precio" onclick="sortBy('ventas','precio','num')">Precio Venta</th>
+          <th class="num sortable" data-col="eng" onclick="sortBy('ventas','eng','num')">Eng %</th>
+          <th class="num sortable" data-col="cons" onclick="sortBy('ventas','cons','num')">Cons %</th>
+          <th class="num sortable" data-col="esc" onclick="sortBy('ventas','esc','num')">Esc %</th>
+          <th class="num sortable" data-col="sep" onclick="sortBy('ventas','sep','num')">Sep. Pagada</th>
+          <th class="num sortable" data-col="cobrado" onclick="sortBy('ventas','cobrado','num')">Cobrado Real</th>
+          <th class="num sortable" data-col="cartera" onclick="sortBy('ventas','cartera','num')">Cartera Vencida</th>
+          <th class="num sortable" data-col="dias" onclick="sortBy('ventas','dias','num')">Días Venc.</th>
+          <th class="sortable" data-col="fventa" onclick="sortBy('ventas','fventa','str')">Fecha Venta</th>
+          <th>F. Firma</th>
+          <th>F. Escritur.</th>
+        </tr>
+      </thead>
+      <tbody id="ventas-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SEPARACIONES -->
+<div id="panel-separaciones" class="panel">
+  <div class="section-header">
+    <div><span class="section-title">Separaciones</span></div>
+    <div class="toolbar">
+      <button class="btn btn-sm" onclick="exportTable('sep-table','Separaciones_Qorus')">Exportar CSV</button>
+    </div>
+  </div>
+
+  <div style="margin-bottom:8px;font-family:'PT Mono',monospace;font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);">— Tabla 1 · Separaciones de Clientes (4 activas)</div>
+  <div class="table-wrap" style="margin-bottom:20px;">
+    <table id="sep-table">
+      <thead><tr>
+        <th>#</th>
+        <th class="sortable" data-col="unidad" onclick="sortBy('sep','unidad','str')">Unidad</th>
+        <th class="sortable" data-col="cliente" onclick="sortBy('sep','cliente','str')">Cliente</th>
+        <th class="sortable" data-col="asesor" onclick="sortBy('sep','asesor','str')">Asesor</th>
+        <th class="num sortable" data-col="monto" onclick="sortBy('sep','monto','num')">Monto Sep.</th>
+        <th class="sortable" data-col="fecha" onclick="sortBy('sep','fecha','str')">Fecha Sep.</th>
+        <th class="num sortable" data-col="dias" onclick="sortBy('sep','dias','num')">Días Trans.</th>
+        <th class="sortable" data-col="estatus" onclick="sortBy('sep','estatus','str')">Estatus</th>
+        <th>F. Escritur.</th>
+      </tr></thead>
+      <tbody id="sep-body"></tbody>
+    </table>
+  </div>
+
+  <div style="margin-bottom:8px;font-family:'PT Mono',monospace;font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);">— Tabla 2 · Departamentos Lobo Inversionistas (10 unidades · André Aguila)</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Unidad</th><th>Unidades Completas</th><th>Asesor</th>
+        <th class="num">Monto Sep.</th><th>Fecha Sep.</th><th class="num">Días Trans.</th>
+        <th>Estatus</th><th>F. Escritur.</th>
+      </tr></thead>
+      <tbody id="lobo-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- COBRANZA -->
+<div id="panel-cartera" class="panel">
+  <div class="section-header">
+    <div>
+      <span class="section-title">Cobranza</span>
+      <span class="section-count" id="cobranza-count">(59 unidades)</span>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-sm" id="btn-vencida" onclick="toggleVencida()"
+        style="background:var(--danger-light);color:var(--danger);border-color:#fecaca;">
+        Solo cartera vencida
+      </button>
+      <select class="filter-select" id="cartera-asesor" onchange="filterCartera()">
+        <option value="">Todos los asesores</option>
+      </select>
+      <select class="filter-select" id="cartera-sort" onchange="filterCartera()">
+        <option value="vencida">Ordenar: Vencida ↓</option>
+        <option value="dias">Ordenar: Días vencidos ↓</option>
+        <option value="pct">Ordenar: % Pagado ↑</option>
+      </select>
+      <button class="btn btn-sm" onclick="exportTable('cartera-table','Cobranza_Qorus')">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap" style="max-height:600px;overflow-y:auto;">
+    <table id="cartera-table">
+      <thead><tr>
+        <th class="sortable" data-col="unidad" onclick="sortBy('cartera','unidad','str')">Unidad</th>
+        <th class="sortable" data-col="cliente" onclick="sortBy('cartera','cliente','str')">Cliente</th>
+        <th class="sortable" data-col="asesor" onclick="sortBy('cartera','asesor','str')">Asesor</th>
+        <th class="num sortable" data-col="precio" onclick="sortBy('cartera','precio','num')">Precio Venta</th>
+        <th class="num sortable" data-col="cobrado" onclick="sortBy('cartera','cobrado','num')">Cobrado Real</th>
+        <th class="num sortable" data-col="pct" onclick="sortBy('cartera','pct','num')">% Pagado</th>
+        <th class="num sortable" data-col="cartVigente" onclick="sortBy('cartera','cartVigente','num')">Cart. Vigente</th>
+        <th class="num sortable" data-col="cartVencidaNum" onclick="sortBy('cartera','cartVencidaNum','num')">Cartera Vencida</th>
+        <th class="num sortable" data-col="diasVencidos" onclick="sortBy('cartera','diasVencidos','num')">Días Venc.</th>
+        <th>Notas</th>
+      </tr></thead>
+      <tbody id="cartera-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- QO CLIENTES -->
+<div id="panel-qo" class="panel">
+  <div class="section-header">
+    <div><span class="section-title">QO Clientes 2026 — Seguimiento</span><span class="section-count" id="qo-count">(61 clientes · Act. 1 jun 2026)</span></div>
+    <div class="toolbar">
+      <input class="search-box" id="qo-search" placeholder="Buscar cliente, unidad..." oninput="filterQO()" style="width:190px;">
+      <select class="filter-select" id="qo-status" onchange="filterQO()">
+        <option value="">Todos los estatus</option>
+        <option value="Firmado">Firmado</option>
+        <option value="Liga Enviada">Liga Enviada</option>
+        <option value="Negociación">Negociación</option>
+        <option value="Aviso de Incumplimiento">Aviso de Incumplimiento</option>
+        <option value="Liberación sin acuerdo">Liberación sin acuerdo</option>
+        <option value="Crítico">Crítico</option>
+        <option value="Por contactar">Por contactar</option>
+        <option value="No contesta">No contesta</option>
+        <option value="Cancelado">Cancelado</option>
+        <option value="DOSAX">DOSAX</option>
+      </select>
+      <select class="filter-select" id="qo-prioridad" onchange="filterQO()">
+        <option value="">Todas las prioridades</option>
+        <option value="URGENTE">🔴 URGENTE</option>
+        <option value="ESTA SEMANA">🟠 ESTA SEMANA</option>
+        <option value="SEGUIMIENTO">🟡 SEGUIMIENTO</option>
+        <option value="OK">⚪ OK</option>
+      </select>
+      <button class="btn btn-sm" onclick="exportTable('qo-table','QO_Clientes_Qorus')">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap" style="max-height:600px;overflow-y:auto;">
+    <table id="qo-table">
+      <thead><tr>
+        <th class="sortable" data-col="unidad" onclick="sortBy('qo','unidad','str')">Unidad</th>
+        <th class="sortable" data-col="cliente" onclick="sortBy('qo','cliente','str')">Cliente</th>
+        <th class="sortable" data-col="estatus" onclick="sortBy('qo','estatus','str')">Estatus</th>
+        <th class="sortable" data-col="prioridad" onclick="sortBy('qo','prioridad','pri')">Prioridad</th>
+        <th class="num sortable" data-col="adeudo" onclick="sortBy('qo','adeudo','num')">Adeudo</th>
+        <th class="num sortable" data-col="mesesVenc" onclick="sortBy('qo','mesesVenc','num')">Meses Venc.</th>
+        <th class="sortable" data-col="fechaLimite" onclick="sortBy('qo','fechaLimite','str')">F. Límite</th>
+        <th>Comentarios / Acción</th>
+      </tr></thead>
+      <tbody id="qo-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- POR ASESOR -->
+<div id="panel-asesor" class="panel">
+  <div class="section-header">
+    <div><span class="section-title">Resumen por Asesor</span></div>
+    <div class="toolbar">
+      <button class="btn btn-sm" onclick="exportTable('asesor-table','PorAsesor_Qorus')">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table id="asesor-table">
+      <thead><tr>
+        <th class="sortable" data-col="asesor" onclick="sortBy('asesor','asesor','str')">Asesor</th>
+        <th class="num sortable" data-col="ventas" onclick="sortBy('asesor','ventas','num')">Ventas Totales</th>
+        <th class="num sortable" data-col="valor" onclick="sortBy('asesor','valor','num')">Valor Total</th>
+        <th class="num sortable" data-col="ventasMayo" onclick="sortBy('asesor','ventasMayo','num')">Ventas Mayo</th>
+        <th class="num sortable" data-col="valorMayo" onclick="sortBy('asesor','valorMayo','num')">Valor Mayo</th>
+        <th class="num sortable" data-col="sep" onclick="sortBy('asesor','sep','num')">Sep. Activas</th>
+      </tr></thead>
+      <tbody id="asesor-body"></tbody>
+    </table>
+  </div>
+</div>
+
+</main>
+
+<div class="save-bar" id="save-bar">
+  <span>⚠ Cambios sin guardar</span>
+  <button class="btn btn-sm" style="background:#fff;color:var(--accent);" onclick="saveChanges()">Guardar en navegador</button>
+  <button class="btn btn-sm" style="background:transparent;color:#b0c8b2;border-color:#b0c8b2;" onclick="discardChanges()">Descartar</button>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const VENTAS = [
+  {n:1,  unidad:"2508", cliente:"Alberto Martínez Gutierrez",              asesor:"Cynthia Montemayor",       precio:"$5,795,867", eng:"17.1%", cons:"12.9%", esc:"70.0%", sep:"-",       cobrado:"$990,500",   cartera:"",         dias:"",    fventa:"29/05/2026", ffirma:"29/05/2026", fescritur:"30/07/2028"},
+  {n:2,  unidad:"2106", cliente:"Siyoung Jang",                            asesor:"Cynthia Montemayor",       precio:"$4,933,330", eng:"15.8%", cons:"14.2%", esc:"70.0%", sep:"-",       cobrado:"$778,681",   cartera:"",         dias:"",    fventa:"29/05/2026", ffirma:"29/05/2026", fescritur:"30/06/2028"},
+  {n:3,  unidad:"1713", cliente:"Antonio Garcia Flores",                   asesor:"Cynthia Montemayor",       precio:"$4,597,975", eng:"19.5%", cons:"10.5%", esc:"70.0%", sep:"-",       cobrado:"$896,172",   cartera:"",         dias:"",    fventa:"28/05/2026", ffirma:"28/05/2026", fescritur:"30/04/2028"},
+  {n:4,  unidad:"1004", cliente:"Juan Manuel Azuara Villarreal",           asesor:"André Aguila",             precio:"$2,668,519", eng:"24.7%", cons:"5.3%",  esc:"70.0%", sep:"-",       cobrado:"$669,555",   cartera:"",         dias:"",    fventa:"25/05/2026", ffirma:"25/05/2026", fescritur:"29/02/2028"},
+  {n:5,  unidad:"2317", cliente:"Claudia Cecilia Gomez Arellano",          asesor:"André Aguila",             precio:"$5,461,381", eng:"13.1%", cons:"16.9%", esc:"70.0%", sep:"-",       cobrado:"$893,634",   cartera:"",         dias:"",    fventa:"20/05/2026", ffirma:"20/05/2026", fescritur:"30/04/2028"},
+  {n:6,  unidad:"2516", cliente:"Ali Josmar De Leon Manriquez",           asesor:"Mariela Ancira",            precio:"$4,480,332", eng:"27.6%", cons:"12.4%", esc:"60.0%", sep:"-",       cobrado:"$1,236,000", cartera:"",         dias:"",    fventa:"01/04/2026", ffirma:"01/04/2026", fescritur:"30/04/2028"},
+  {n:7,  unidad:"1014", cliente:"Alejandro Malo López",                   asesor:"Daniela Aguilera",         precio:"$3,090,453", eng:"26.7%", cons:"3.3%",  esc:"70.1%", sep:"-",       cobrado:"$849,159",   cartera:"",         dias:"",    fventa:"19/03/2026", ffirma:"14/03/2026", fescritur:"29/02/2028"},
+  {n:8,  unidad:"1106", cliente:"Itzel Pelayo Hernández",                 asesor:"André Aguila",             precio:"$2,724,205", eng:"23.2%", cons:"6.8%",  esc:"70.0%", sep:"-",       cobrado:"$664,378",   cartera:"",         dias:"",    fventa:"12/03/2026", ffirma:"12/03/2026", fescritur:"29/02/2028"},
+  {n:9,  unidad:"1710", cliente:"Oscar Segovia Hernandez",                asesor:"Juan Manuel Aguirre",      precio:"$4,101,333", eng:"20.0%", cons:"10.0%", esc:"70.0%", sep:"$20,000", cobrado:"$913,478",   cartera:"",         dias:"",    fventa:"22/01/2026", ffirma:"22/01/2026", fescritur:"21/12/2027"},
+  {n:10, unidad:"1116", cliente:"Adriana Lozano Rodríguez",               asesor:"André Aguila",             precio:"$2,454,856", eng:"72.9%", cons:"17.1%", esc:"10.0%", sep:"-",       cobrado:"$1,856,652", cartera:"",         dias:"",    fventa:"07/01/2026", ffirma:"14/11/2023", fescritur:"15/03/2028"},
+  {n:11, unidad:"1113", cliente:"Guillermo Muñoz Valero",                 asesor:"André Aguila",             precio:"$2,543,609", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"-",       cobrado:"$667,697",   cartera:"",         dias:"",    fventa:"07/01/2026", ffirma:"01/12/2023", fescritur:"30/11/2027"},
+  {n:12, unidad:"1115", cliente:"Mario Cesar Herrera Covarrubias, Marcela Alejandra Martinez Perez.", asesor:"André Aguila", precio:"$2,764,732", eng:"17.7%", cons:"14.7%", esc:"67.6%", sep:"-", cobrado:"$489,312", cartera:"", dias:"", fventa:"07/01/2026", ffirma:"12/12/2023", fescritur:"30/07/2028"},
+  {n:13, unidad:"1912", cliente:"Jaime Gonzalez Ortiz",                   asesor:"Eric Maurilio Terrazas",   precio:"$4,235,248", eng:"20.8%", cons:"9.2%",  esc:"70.0%", sep:"-",       cobrado:"$918,366",   cartera:"",         dias:"",    fventa:"07/01/2026", ffirma:"23/01/2024", fescritur:"30/07/2028"},
+  {n:14, unidad:"1712", cliente:"Cesar Eugenio Macias Silva",             asesor:"André Aguila",             precio:"$4,702,581", eng:"10.0%", cons:"26.4%", esc:"63.5%", sep:"-",       cobrado:"$471,420",   cartera:"",         dias:"",    fventa:"06/01/2026", ffirma:"28/12/2023", fescritur:"30/07/2028"},
+  {n:15, unidad:"1913", cliente:"Federico Alcerreca Salas",               asesor:"Nelly Moreno",             precio:"$4,222,256", eng:"21.2%", cons:"3.1%",  esc:"75.7%", sep:"-",       cobrado:"$910,670",   cartera:"",         dias:"",    fventa:"05/01/2026", ffirma:"29/12/2023", fescritur:"30/07/2028"},
+  {n:16, unidad:"1114", cliente:"Tomas Escamilla Linaje",                 asesor:"André Aguila",             precio:"$2,681,540", eng:"16.1%", cons:"17.5%", esc:"66.4%", sep:"-",       cobrado:"$431,141",   cartera:"$364,948", dias:"7",   fventa:"05/01/2026", ffirma:"17/01/2024", fescritur:"30/04/2028"},
+  {n:17, unidad:"1512", cliente:"Jesús Salomón Garza Cantú",              asesor:"André Aguila",             precio:"$3,456,696", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"-",       cobrado:"$866,263",   cartera:"$55,521",  dias:"113", fventa:"05/01/2026", ffirma:"17/01/2024", fescritur:"30/11/2027"},
+  {n:18, unidad:"1903", cliente:"David Martínez Valdés",                  asesor:"Mariela Ancira",           precio:"$4,207,697", eng:"20.0%", cons:"10.0%", esc:"70.0%", sep:"-",       cobrado:"$923,566",   cartera:"",         dias:"",    fventa:"05/01/2026", ffirma:"05/01/2026", fescritur:"15/03/2028"},
+  {n:19, unidad:"2303", cliente:"Edelmiro Cantu Yunes, Jesus Adrian Gonzalez Montemayor, Luis Artemio Fernandez Diaz, Jose Antonio Cantu Yunes", asesor:"Mariela Ancira", precio:"$4,046,820", eng:"20.0%", cons:"10.0%", esc:"70.0%", sep:"-", cobrado:"$889,325", cartera:"", dias:"", fventa:"30/12/2025", ffirma:"30/12/2025", fescritur:"25/02/2028"},
+  {n:20, unidad:"1518", cliente:"Yael Villarreal Rosales",                asesor:"André Aguila",             precio:"$3,980,497", eng:"13.0%", cons:"17.0%", esc:"70.0%", sep:"-",       cobrado:"$836,050",   cartera:"",         dias:"",    fventa:"29/12/2025", ffirma:"21/03/2025", fescritur:"30/11/2027"},
+  {n:21, unidad:"1501", cliente:"Andrea Fernández Salinas",               asesor:"André Aguila",             precio:"$3,978,193", eng:"10.0%", cons:"15.0%", esc:"75.0%", sep:"-",       cobrado:"$637,819",   cartera:"$18,582",  dias:"3",   fventa:"29/12/2025", ffirma:"05/05/2025", fescritur:"05/12/2027"},
+  {n:22, unidad:"1511", cliente:"Jesús Rodrigo Peña Sifuentes",           asesor:"André Aguila",             precio:"$3,845,099", eng:"10.0%", cons:"20.0%", esc:"70.0%", sep:"-",       cobrado:"$811,743",   cartera:"$85,446",  dias:"113", fventa:"29/12/2025", ffirma:"03/06/2024", fescritur:"30/11/2027"},
+  {n:23, unidad:"1703", cliente:"José Manuel Ventura Domínguez",          asesor:"Cynthia Montemayor",       precio:"$4,527,932", eng:"19.0%", cons:"11.0%", esc:"70.0%", sep:"-",       cobrado:"$858,422",   cartera:"",         dias:"",    fventa:"29/12/2025", ffirma:"25/04/2024", fescritur:"30/07/2028"},
+  {n:24, unidad:"1502", cliente:"Miguel Armando Domínguez Beltrán",       asesor:"André Aguila",             precio:"$3,790,416", eng:"10.0%", cons:"20.0%", esc:"70.0%", sep:"-",       cobrado:"$780,379",   cartera:"$66,889",  dias:"84",  fventa:"29/12/2025", ffirma:"31/07/2024", fescritur:"30/11/2027"},
+  {n:25, unidad:"1517", cliente:"Fabián Azael Ordaz Lumbreras",           asesor:"André Aguila",             precio:"$4,017,791", eng:"10.0%", cons:"20.0%", esc:"70.0%", sep:"-",       cobrado:"$789,779",   cartera:"$13,779",  dias:"24",  fventa:"29/12/2025", ffirma:"15/11/2024", fescritur:"15/12/2027"},
+  {n:26, unidad:"1407", cliente:"PROJECTCOACH, S.C.",                     asesor:"André Aguila",             precio:"$2,794,954", eng:"28.3%", cons:"0.0%",  esc:"71.7%", sep:"-",       cobrado:"$2,572,950", cartera:"",         dias:"",    fventa:"29/12/2025", ffirma:"30/11/2024", fescritur:"30/11/2027"},
+  {n:27, unidad:"2517", cliente:"Sandra Elizeth Hernandez Martinez",      asesor:"Eric Maurilio Terrazas",   precio:"$6,429,131", eng:"20.0%", cons:"10.0%", esc:"70.0%", sep:"$20,000", cobrado:"$1,393,496", cartera:"$9,223",   dias:"18",  fventa:"10/02/2026", ffirma:"06/02/2026", fescritur:"31/03/2028"},
+  {n:28, unidad:"2114", cliente:"Ricardo Ortiz Ibarra",                   asesor:"Paulina Loera",            precio:"$3,662,524", eng:"42.9%", cons:"3.8%",  esc:"53.2%", sep:"-",       cobrado:"$511,878",   cartera:"",         dias:"",    fventa:"19/12/2025", ffirma:"18/10/2023", fescritur:"30/07/2028"},
+  {n:29, unidad:"1011", cliente:"Marcela Chavarria Gonzalez",             asesor:"André Aguila",             precio:"$2,651,267", eng:"10.0%", cons:"15.0%", esc:"75.0%", sep:"-",       cobrado:"$632,038",   cartera:"",         dias:"",    fventa:"17/12/2025", ffirma:"07/07/2023", fescritur:"30/11/2027"},
+  {n:30, unidad:"903",  cliente:"Marvin Daniel Ramirez Beltran",          asesor:"André Aguila",             precio:"$2,428,051", eng:"20.0%", cons:"23.0%", esc:"57.0%", sep:"-",       cobrado:"$876,526",   cartera:"",         dias:"",    fventa:"17/12/2025", ffirma:"21/02/2024", fescritur:"30/11/2027"},
+  {n:31, unidad:"902",  cliente:"GERARDO TAFICH ROMO",                    asesor:"Alejandro Garcia",         precio:"$2,428,051", eng:"20.0%", cons:"23.0%", esc:"57.0%", sep:"-",       cobrado:"$778,797",   cartera:"$125,651", dias:"250", fventa:"17/12/2025", ffirma:"30/11/2023", fescritur:"30/11/2027"},
+  {n:32, unidad:"2509", cliente:"Fabián Arturo Mata Orsua",               asesor:"Cynthia Montemayor",       precio:"$3,576,800", eng:"19.9%", cons:"10.1%", esc:"70.0%", sep:"-",       cobrado:"$727,886",   cartera:"",         dias:"",    fventa:"16/12/2025", ffirma:"15/08/2024", fescritur:"30/07/2028"},
+  {n:33, unidad:"2505", cliente:"Dionisio Nicolas Benavides Gutierrez",   asesor:"Ogarita Diaz",             precio:"$3,286,237", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"-",       cobrado:"$862,639",   cartera:"",         dias:"",    fventa:"16/12/2025", ffirma:"17/01/2024", fescritur:"30/11/2027"},
+  {n:34, unidad:"2504", cliente:"Gisselle Gallegos Aviña",                asesor:"Paulina Loera",            precio:"$3,995,912", eng:"21.9%", cons:"8.1%",  esc:"70.0%", sep:"-",       cobrado:"$889,699",   cartera:"",         dias:"",    fventa:"16/12/2025", ffirma:"29/09/2023", fescritur:"30/07/2028"},
+  {n:35, unidad:"2503", cliente:"Andres Garza Garcia",                    asesor:"Cynthia Montemayor",       precio:"$4,071,279", eng:"21.2%", cons:"4.0%",  esc:"74.9%", sep:"-",       cobrado:"$862,637",   cartera:"",         dias:"",    fventa:"16/12/2025", ffirma:"12/10/2023", fescritur:"30/07/2028"},
+  {n:36, unidad:"2501", cliente:"María Luisa Alejandra Cavazos Mata",     asesor:"Cynthia Montemayor",       precio:"$3,515,600", eng:"20.5%", cons:"9.5%",  esc:"70.0%", sep:"-",       cobrado:"$746,374",   cartera:"",         dias:"",    fventa:"16/12/2025", ffirma:"15/11/2024", fescritur:"30/07/2028"},
+  {n:37, unidad:"2314", cliente:"Eutimio Arellano Machuca",               asesor:"Dosax 1",                  precio:"$4,083,382", eng:"20.0%", cons:"10.0%", esc:"70.0%", sep:"-",       cobrado:"$901,350",   cartera:"",         dias:"",    fventa:"16/12/2025", ffirma:"15/09/2023", fescritur:"30/01/2028"},
+  {n:38, unidad:"2313", cliente:"Heesun Kang",                            asesor:"Cynthia Montemayor",       precio:"$3,397,800", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"-",       cobrado:"$828,212",   cartera:"$50,968",  dias:"127", fventa:"16/12/2025", ffirma:"27/11/2023", fescritur:"30/11/2027"},
+  {n:39, unidad:"2310", cliente:"Israel Isaías González Pineda",          asesor:"Cynthia Montemayor",       precio:"$3,628,880", eng:"18.5%", cons:"11.5%", esc:"70.0%", sep:"-",       cobrado:"$673,076",   cartera:"",         dias:"",    fventa:"09/12/2025", ffirma:"21/02/2025", fescritur:"30/07/2028"},
+  {n:40, unidad:"2309", cliente:"Alondra Castañeda Valera",               asesor:"Juan Pablo Montemayor",    precio:"$3,435,595", eng:"18.9%", cons:"14.0%", esc:"67.1%", sep:"-",       cobrado:"$874,000",   cartera:"$32,000",  dias:"40",  fventa:"09/12/2025", ffirma:"29/01/2025", fescritur:"30/11/2027"},
+  {n:41, unidad:"2305", cliente:"Orlando Vargas Nava",                    asesor:"Paulina Loera",            precio:"$4,300,258", eng:"20.8%", cons:"9.2%",  esc:"70.0%", sep:"-",       cobrado:"$893,047",   cartera:"",         dias:"",    fventa:"09/12/2025", ffirma:"26/09/2023", fescritur:"30/07/2028"},
+  {n:42, unidad:"2304", cliente:"Felipe De Jesus Solis García",           asesor:"Paulina Loera",            precio:"$3,930,516", eng:"10.7%", cons:"19.3%", esc:"70.0%", sep:"-",       cobrado:"$419,752",   cartera:"$759,402", dias:"931", fventa:"09/12/2025", ffirma:"18/09/2023", fescritur:"30/07/2028"},
+  {n:43, unidad:"2113", cliente:"Eva Cristina Quintanilla Muruaga",       asesor:"Paulina Loera",            precio:"$3,335,286", eng:"40.0%", cons:"30.0%", esc:"30.0%", sep:"-",       cobrado:"$2,108,568", cartera:"$1,000",   dias:"24",  fventa:"09/12/2025", ffirma:"06/10/2023", fescritur:"30/11/2027"},
+  {n:44, unidad:"2109", cliente:"Juan Carlos Méndez Méndez",              asesor:"Cynthia Montemayor",       precio:"$3,551,800", eng:"21.7%", cons:"8.3%",  esc:"70.0%", sep:"-",       cobrado:"$770,180",   cartera:"",         dias:"",    fventa:"08/12/2025", ffirma:"26/07/2024", fescritur:"30/07/2028"},
+  {n:45, unidad:"2105", cliente:"Antonio Castellanos Gomez y Juana Cruz Dominguez", asesor:"Paulina Loera", precio:"$4,562,168", eng:"7.8%", cons:"28.9%", esc:"63.4%", sep:"-", cobrado:"$355,000", cartera:"$151,133", dias:"53", fventa:"08/12/2025", ffirma:"30/09/2023", fescritur:"30/07/2028"},
+  {n:46, unidad:"2104", cliente:"Adriana Lozano Rodríguez",               asesor:"Paulina Loera",            precio:"$3,711,777", eng:"59.6%", cons:"30.4%", esc:"10.0%", sep:"-",       cobrado:"$2,387,143", cartera:"",         dias:"",    fventa:"08/12/2025", ffirma:"14/11/2023", fescritur:"30/07/2028"},
+  {n:47, unidad:"2103", cliente:"SMARFLEET S.A.P.I. DE C.V.",             asesor:"Paulina Loera",            precio:"$4,104,983", eng:"18.5%", cons:"12.0%", esc:"69.4%", sep:"-",       cobrado:"$760,569",   cartera:"",         dias:"",    fventa:"08/12/2025", ffirma:"02/10/2023", fescritur:"30/07/2028"},
+  {n:48, unidad:"1709", cliente:"Heidi Alicia Sagaón Arguelles",          asesor:"Alejandra Barajas",        precio:"$3,501,886", eng:"11.4%", cons:"18.6%", esc:"70.0%", sep:"-",       cobrado:"$510,712",   cartera:"$61,468",  dias:"80",  fventa:"27/11/2025", ffirma:"20/10/2025", fescritur:"20/04/2028"},
+  {n:49, unidad:"1917", cliente:"Dosax Desarrollos S.A. de C.V.",         asesor:"André Aguila",             precio:"$3,357,556", eng:"0.0%",  cons:"0.0%",  esc:"100.0%",sep:"-",       cobrado:"$0",         cartera:"",         dias:"",    fventa:"26/11/2025", ffirma:"20/12/2024", fescritur:"30/11/2027"},
+  {n:50, unidad:"1911", cliente:"Fernando Hugo Ramirez Gonzalez",         asesor:"Alejandra Barajas",        precio:"$5,408,291", eng:"21.7%", cons:"2.3%",  esc:"76.0%", sep:"-",       cobrado:"$1,211,046", cartera:"",         dias:"",    fventa:"20/11/2025", ffirma:"19/11/2025", fescritur:"11/12/2027"},
+  {n:51, unidad:"2112", cliente:"Jesus Ignacio Garza Benavides",          asesor:"Mariela Ancira",           precio:"$4,578,127", eng:"17.1%", cons:"12.9%", esc:"70.0%", sep:"-",       cobrado:"$929,887",   cartera:"",         dias:"",    fventa:"28/10/2025", ffirma:"21/10/2025", fescritur:"30/06/2028"},
+  {n:52, unidad:"2510", cliente:"Sarahi Galindo Arzola",                  asesor:"Nelly Moreno",             precio:"$3,994,666", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000", cobrado:"$511,317",   cartera:"",         dias:"",    fventa:"24/10/2025", ffirma:"23/10/2025", fescritur:"23/12/2027"},
+  {n:53, unidad:"1510", cliente:"Miguel Ángel De Luna Vargas",            asesor:"Eric Maurilio Terrazas",   precio:"$3,943,555", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000", cobrado:"$489,200",   cartera:"$15,574",  dias:"16",  fventa:"27/10/2025", ffirma:"27/10/2025", fescritur:"23/12/2027"},
+  {n:54, unidad:"2312", cliente:"Esau Gaona Moreno",                      asesor:"Cynthia Montemayor",       precio:"$3,903,482", eng:"18.3%", cons:"11.7%", esc:"70.0%", sep:"-",       cobrado:"$714,420",   cartera:"$114,156", dias:"220", fventa:"28/10/2025", ffirma:"20/10/2025", fescritur:"30/06/2028"},
+  {n:55, unidad:"2518", cliente:"Carlos Alberto Godinez Gonzalez",        asesor:"Juan Manuel Aguirre",      precio:"$3,920,000", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000", cobrado:"$355,503",   cartera:"",         dias:"",    fventa:"20/10/2025", ffirma:"17/10/2025", fescritur:"17/06/2028"},
+  {n:56, unidad:"1515", cliente:"FERNANDO ESTRADA BAUTISTA",              asesor:"Nelly Moreno",             precio:"$5,381,503", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000", cobrado:"$405,425",   cartera:"",         dias:"",    fventa:"14/10/2025", ffirma:"14/10/2025", fescritur:"15/02/2028"},
+  {n:57, unidad:"2512", cliente:"Gustavo Eduardo Silva de Santiago y Raul Alejandro Silva de Santiago", asesor:"Alejandra Barajas", precio:"$4,594,144", eng:"17.6%", cons:"12.4%", esc:"70.0%", sep:"-", cobrado:"$984,269", cartera:"", dias:"", fventa:"15/12/2025", ffirma:"12/12/2025", fescritur:"15/03/2028"},
+  {n:58, unidad:"1007", cliente:"FERMIN RIVERA QUINTANA",                 asesor:"Nelly Moreno",             precio:"$3,434,651", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000", cobrado:"$449,146",   cartera:"",         dias:"",    fventa:"17/09/2025", ffirma:"16/09/2025", fescritur:"15/12/2027"},
+  {n:59, unidad:"1509", cliente:"ANDREA MAYELA CHAPA FERREIRO",           asesor:"Eric Maurilio Terrazas",   precio:"$3,870,000", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000", cobrado:"$506,076",   cartera:"",         dias:"",    fventa:"15/09/2025", ffirma:"12/09/2025", fescritur:"15/12/2027"},
+];
+
+const SEP_CLIENTES = [
+  {n:1, unidad:"1111", cliente:"MAURO ALBERTO LOPEZ COSTILLA", asesor:"Eric Maurilio Terrazas", monto:"$20,000", fecha:"07/03/2026", dias:"93",  estatus:"✔ Activa",  fescritur:"29/02/2028"},
+  {n:2, unidad:"1715", cliente:"Michel Iván de la Cruz Vilchis",asesor:"Joel Gongora",           monto:"$20,000", fecha:"08/05/2026", dias:"31",  estatus:"✔ Activa",  fescritur:"29/02/2028"},
+  {n:3, unidad:"2706", cliente:"MAURO ALBERTO LOPEZ COSTILLA", asesor:"Eric Maurilio Terrazas", monto:"$20,000", fecha:"07/03/2026", dias:"93",  estatus:"✔ Activa",  fescritur:"31/07/2028"},
+  {n:4, unidad:"1704", cliente:"Emanuel Sanchez",              asesor:"Joel Gongora",           monto:"$10,000", fecha:"21/02/2026", dias:"107", estatus:"⚠ Revisar", fescritur:"29/02/2028"},
+];
+
+const SEP_LOBO = [
+  {n:1, unidad:"1901", completas:"1901, C71", asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:2, unidad:"1417", completas:"1417, C47", asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:3, unidad:"1416", completas:"1416, C19", asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:4, unidad:"1918", completas:"1918, C6",  asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:5, unidad:"2117", completas:"2117, C7",  asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:6, unidad:"2502", completas:"2502, C8",  asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:7, unidad:"2709", completas:"2709, C9",  asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:8, unidad:"2710", completas:"2710, C10", asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:9, unidad:"1406", completas:"1406, C5",  asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+  {n:10,unidad:"1405", completas:"1405, C3",  asesor:"André Aguila", monto:"$1", fecha:"19/12/2025", dias:"171", estatus:"✔ Activa", fescritur:"30/11/2027"},
+];
+
+// COBRANZA — all 59 units (June 8, 2026)
+// cartVencidaNum / pctNum used for sorting
+const COBRANZA = [
+  {unidad:"2508", cliente:"Alberto Martínez Gutierrez",           asesor:"Cynthia Montemayor",    precio:"$5,795,867", cobrado:"$990,500",   pct:"17.1%", cartVigente:"$4,805,368", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2106", cliente:"Siyoung Jang",                         asesor:"Cynthia Montemayor",    precio:"$4,933,330", cobrado:"$778,681",   pct:"15.8%", cartVigente:"$4,154,650", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1713", cliente:"Antonio Garcia Flores",                asesor:"Cynthia Montemayor",    precio:"$4,597,975", cobrado:"$896,172",   pct:"19.5%", cartVigente:"$3,701,804", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1004", cliente:"Juan Manuel Azuara Villarreal",        asesor:"André Aguila",          precio:"$2,668,519", cobrado:"$669,555",   pct:"25.1%", cartVigente:"$1,998,964", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2317", cliente:"Claudia Cecilia Gomez Arellano",       asesor:"André Aguila",          precio:"$5,461,381", cobrado:"$893,634",   pct:"16.4%", cartVigente:"$4,567,747", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2516", cliente:"Ali Josmar De Leon Manriquez",         asesor:"Mariela Ancira",        precio:"$4,480,332", cobrado:"$1,236,000", pct:"27.6%", cartVigente:"$3,244,333", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1014", cliente:"Alejandro Malo López",                 asesor:"Daniela Aguilera",      precio:"$3,090,453", cobrado:"$849,159",   pct:"27.5%", cartVigente:"$2,241,294", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1106", cliente:"Itzel Pelayo Hernández",               asesor:"André Aguila",          precio:"$2,724,205", cobrado:"$664,378",   pct:"24.4%", cartVigente:"$2,059,828", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1710", cliente:"Oscar Segovia Hernandez",              asesor:"Juan Manuel Aguirre",   precio:"$4,101,333", cobrado:"$913,478",   pct:"22.3%", cartVigente:"$3,187,855", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1116", cliente:"Adriana Lozano Rodríguez",             asesor:"André Aguila",          precio:"$2,454,856", cobrado:"$1,856,652", pct:"75.6%", cartVigente:"$598,204",   cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1113", cliente:"Guillermo Muñoz Valero",               asesor:"André Aguila",          precio:"$2,543,609", cobrado:"$667,697",   pct:"26.3%", cartVigente:"$1,875,912", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1115", cliente:"Mario Cesar Herrera Covarrubias, Marcela A. Martinez Perez.", asesor:"André Aguila", precio:"$2,764,732", cobrado:"$489,312", pct:"17.7%", cartVigente:"$2,275,419", cartVencida:"$0", cartVencidaNum:0, diasVencidos:0, notas:""},
+  {unidad:"1912", cliente:"Jaime Gonzalez Ortiz",                 asesor:"Eric Maurilio Terrazas",precio:"$4,235,248", cobrado:"$918,366",   pct:"21.7%", cartVigente:"$3,316,881", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1712", cliente:"Cesar Eugenio Macias Silva",           asesor:"André Aguila",          precio:"$4,702,581", cobrado:"$471,420",   pct:"10.0%", cartVigente:"$4,231,162", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1913", cliente:"Federico Alcerreca Salas",             asesor:"Nelly Moreno",          precio:"$4,222,256", cobrado:"$910,670",   pct:"21.6%", cartVigente:"$3,311,586", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1114", cliente:"Tomas Escamilla Linaje",               asesor:"André Aguila",          precio:"$2,681,540", cobrado:"$431,141",   pct:"16.1%", cartVigente:"$1,885,450", cartVencida:"$364,948", cartVencidaNum:364948, diasVencidos:7,   notas:""},
+  {unidad:"1512", cliente:"Jesús Salomón Garza Cantú",            asesor:"André Aguila",          precio:"$3,456,696", cobrado:"$866,263",   pct:"25.1%", cartVigente:"$2,534,911", cartVencida:"$55,521",  cartVencidaNum:55521,  diasVencidos:113, notas:""},
+  {unidad:"1903", cliente:"David Martínez Valdés",                asesor:"Mariela Ancira",        precio:"$4,207,697", cobrado:"$923,566",   pct:"21.9%", cartVigente:"$3,284,131", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2303", cliente:"Edelmiro Cantu Yunes et al.",          asesor:"Mariela Ancira",        precio:"$4,046,820", cobrado:"$889,325",   pct:"22.0%", cartVigente:"$3,157,495", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1518", cliente:"Yael Villarreal Rosales",              asesor:"André Aguila",          precio:"$3,980,497", cobrado:"$836,050",   pct:"21.0%", cartVigente:"$3,144,448", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1501", cliente:"Andrea Fernández Salinas",             asesor:"André Aguila",          precio:"$3,978,193", cobrado:"$637,819",   pct:"16.0%", cartVigente:"$3,321,792", cartVencida:"$18,582",  cartVencidaNum:18582,  diasVencidos:3,   notas:""},
+  {unidad:"1511", cliente:"Jesús Rodrigo Peña Sifuentes",         asesor:"André Aguila",          precio:"$3,845,099", cobrado:"$811,743",   pct:"21.1%", cartVigente:"$2,947,910", cartVencida:"$85,446",  cartVencidaNum:85446,  diasVencidos:113, notas:""},
+  {unidad:"1703", cliente:"José Manuel Ventura Domínguez",        asesor:"Cynthia Montemayor",    precio:"$4,527,932", cobrado:"$858,422",   pct:"19.0%", cartVigente:"$3,669,510", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1502", cliente:"Miguel Armando Domínguez Beltrán",     asesor:"André Aguila",          precio:"$3,790,416", cobrado:"$780,379",   pct:"20.6%", cartVigente:"$2,943,147", cartVencida:"$66,889",  cartVencidaNum:66889,  diasVencidos:84,  notas:""},
+  {unidad:"1517", cliente:"Fabián Azael Ordaz Lumbreras",         asesor:"André Aguila",          precio:"$4,017,791", cobrado:"$789,779",   pct:"19.7%", cartVigente:"$3,214,233", cartVencida:"$13,779",  cartVencidaNum:13779,  diasVencidos:24,  notas:""},
+  {unidad:"1407", cliente:"PROJECTCOACH, S.C.",                   asesor:"André Aguila",          precio:"$2,794,954", cobrado:"$2,572,950", pct:"92.1%", cartVigente:"$222,005",   cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2517", cliente:"Sandra Elizeth Hernandez Martinez",    asesor:"Eric Maurilio Terrazas",precio:"$6,429,131", cobrado:"$1,393,496", pct:"21.7%", cartVigente:"$5,026,412", cartVencida:"$9,223",   cartVencidaNum:9223,   diasVencidos:18,  notas:""},
+  {unidad:"2114", cliente:"Ricardo Ortiz Ibarra",                 asesor:"Paulina Loera",         precio:"$3,662,524", cobrado:"$511,878",   pct:"14.0%", cartVigente:"$3,150,646", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1011", cliente:"Marcela Chavarria Gonzalez",           asesor:"André Aguila",          precio:"$2,651,267", cobrado:"$632,038",   pct:"23.8%", cartVigente:"$2,019,228", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"903",  cliente:"Marvin Daniel Ramirez Beltran",        asesor:"André Aguila",          precio:"$2,428,051", cobrado:"$876,526",   pct:"36.1%", cartVigente:"$1,551,525", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"902",  cliente:"GERARDO TAFICH ROMO",                  asesor:"Alejandro Garcia",      precio:"$2,428,051", cobrado:"$778,797",   pct:"32.1%", cartVigente:"$1,523,602", cartVencida:"$125,651", cartVencidaNum:125651, diasVencidos:250, notas:""},
+  {unidad:"2509", cliente:"Fabián Arturo Mata Orsua",             asesor:"Cynthia Montemayor",    precio:"$3,576,800", cobrado:"$727,886",   pct:"20.4%", cartVigente:"$2,848,913", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2505", cliente:"Dionisio Nicolas Benavides Gutierrez", asesor:"Ogarita Diaz",          precio:"$3,286,237", cobrado:"$862,639",   pct:"26.3%", cartVigente:"$2,423,598", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2504", cliente:"Gisselle Gallegos Aviña",              asesor:"Paulina Loera",         precio:"$3,995,912", cobrado:"$889,699",   pct:"22.3%", cartVigente:"$3,106,213", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2503", cliente:"Andres Garza Garcia",                  asesor:"Cynthia Montemayor",    precio:"$4,071,279", cobrado:"$862,637",   pct:"21.2%", cartVigente:"$3,208,641", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2501", cliente:"María Luisa Alejandra Cavazos Mata",   asesor:"Cynthia Montemayor",    precio:"$3,515,600", cobrado:"$746,374",   pct:"21.2%", cartVigente:"$2,769,226", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2314", cliente:"Eutimio Arellano Machuca",             asesor:"Dosax 1",               precio:"$4,083,382", cobrado:"$901,350",   pct:"22.1%", cartVigente:"$3,182,032", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2313", cliente:"Heesun Kang",                          asesor:"Cynthia Montemayor",    precio:"$3,397,800", cobrado:"$828,212",   pct:"24.4%", cartVigente:"$2,518,620", cartVencida:"$50,968",  cartVencidaNum:50968,  diasVencidos:127, notas:""},
+  {unidad:"2310", cliente:"Israel Isaías González Pineda",        asesor:"Cynthia Montemayor",    precio:"$3,628,880", cobrado:"$673,076",   pct:"18.5%", cartVigente:"$2,955,804", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2309", cliente:"Alondra Castañeda Valera",             asesor:"Juan Pablo Montemayor", precio:"$3,435,595", cobrado:"$874,000",   pct:"25.4%", cartVigente:"$2,529,595", cartVencida:"$32,000",  cartVencidaNum:32000,  diasVencidos:40,  notas:""},
+  {unidad:"2305", cliente:"Orlando Vargas Nava",                  asesor:"Paulina Loera",         precio:"$4,300,258", cobrado:"$893,047",   pct:"20.8%", cartVigente:"$3,407,212", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2304", cliente:"Felipe De Jesus Solis García",         asesor:"Paulina Loera",         precio:"$3,930,516", cobrado:"$419,752",   pct:"10.7%", cartVigente:"$2,751,362", cartVencida:"$759,402", cartVencidaNum:759402, diasVencidos:931, notas:""},
+  {unidad:"2113", cliente:"Eva Cristina Quintanilla Muruaga",     asesor:"Paulina Loera",         precio:"$3,335,286", cobrado:"$2,108,568", pct:"63.2%", cartVigente:"$1,225,718", cartVencida:"$1,000",   cartVencidaNum:1000,   diasVencidos:24,  notas:""},
+  {unidad:"2109", cliente:"Juan Carlos Méndez Méndez",            asesor:"Cynthia Montemayor",    precio:"$3,551,800", cobrado:"$770,180",   pct:"21.7%", cartVigente:"$2,781,620", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2105", cliente:"Antonio Castellanos Gomez y Juana Cruz Dominguez", asesor:"Paulina Loera", precio:"$4,562,168", cobrado:"$355,000", pct:"7.8%", cartVigente:"$4,056,034", cartVencida:"$151,133", cartVencidaNum:151133, diasVencidos:53, notas:""},
+  {unidad:"2104", cliente:"Adriana Lozano Rodríguez",             asesor:"Paulina Loera",         precio:"$3,711,777", cobrado:"$2,387,143", pct:"64.3%", cartVigente:"$1,324,634", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2103", cliente:"SMARFLEET S.A.P.I. DE C.V.",          asesor:"Paulina Loera",          precio:"$4,104,983", cobrado:"$760,569",   pct:"18.5%", cartVigente:"$3,344,414", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1709", cliente:"Heidi Alicia Sagaón Arguelles",        asesor:"Alejandra Barajas",     precio:"$3,501,886", cobrado:"$510,712",   pct:"14.6%", cartVigente:"$2,929,706", cartVencida:"$61,468",  cartVencidaNum:61468,  diasVencidos:80,  notas:""},
+  {unidad:"1917", cliente:"Dosax Desarrollos S.A. de C.V.",      asesor:"André Aguila",           precio:"$3,357,556", cobrado:"$0",         pct:"0.0%",  cartVigente:"$3,357,557", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1911", cliente:"Fernando Hugo Ramirez Gonzalez",       asesor:"Alejandra Barajas",     precio:"$5,408,291", cobrado:"$1,211,046", pct:"22.4%", cartVigente:"$4,197,245", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2112", cliente:"Jesus Ignacio Garza Benavides",        asesor:"Mariela Ancira",        precio:"$4,578,127", cobrado:"$929,887",   pct:"20.3%", cartVigente:"$3,648,240", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2510", cliente:"Sarahi Galindo Arzola",                asesor:"Nelly Moreno",          precio:"$3,994,666", cobrado:"$511,317",   pct:"12.8%", cartVigente:"$3,483,349", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1510", cliente:"Miguel Ángel De Luna Vargas",          asesor:"Eric Maurilio Terrazas",precio:"$3,943,555", cobrado:"$489,200",   pct:"12.4%", cartVigente:"$3,438,781", cartVencida:"$15,574",  cartVencidaNum:15574,  diasVencidos:16,  notas:""},
+  {unidad:"2312", cliente:"Esau Gaona Moreno",                    asesor:"Cynthia Montemayor",    precio:"$3,903,482", cobrado:"$714,420",   pct:"18.3%", cartVigente:"$3,074,905", cartVencida:"$114,156", cartVencidaNum:114156, diasVencidos:220, notas:""},
+  {unidad:"2518", cliente:"Carlos Alberto Godinez Gonzalez",      asesor:"Juan Manuel Aguirre",   precio:"$3,920,000", cobrado:"$355,503",   pct:"9.1%",  cartVigente:"$3,564,497", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1515", cliente:"FERNANDO ESTRADA BAUTISTA",            asesor:"Nelly Moreno",          precio:"$5,381,503", cobrado:"$405,425",   pct:"7.5%",  cartVigente:"$4,976,077", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"2512", cliente:"Gustavo E. Silva de Santiago y Raul A. Silva de Santiago", asesor:"Alejandra Barajas", precio:"$4,594,144", cobrado:"$984,269", pct:"21.4%", cartVigente:"$3,609,874", cartVencida:"$0", cartVencidaNum:0, diasVencidos:0, notas:""},
+  {unidad:"1007", cliente:"FERMIN RIVERA QUINTANA",               asesor:"Nelly Moreno",          precio:"$3,434,651", cobrado:"$449,146",   pct:"13.1%", cartVigente:"$2,985,505", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+  {unidad:"1509", cliente:"ANDREA MAYELA CHAPA FERREIRO",         asesor:"Eric Maurilio Terrazas",precio:"$3,870,000", cobrado:"$506,076",   pct:"13.1%", cartVigente:"$3,363,923", cartVencida:"$0",       cartVencidaNum:0,       diasVencidos:0,   notas:""},
+];
+
+const QO = [
+  // Actualizado: 1 junio 2026 — Tracker_Qorus_01junio2026.xlsx
+  {n:1,  unidad:"902",  cliente:"Gerardo Tafich Romo",                         estatus:"Por contactar",           comentarios:"Ya contactado por Mariela",                                                                                  fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Contactar para iniciar proceso",                     prioridad:"SEGUIMIENTO"},
+  {n:2,  unidad:"903",  cliente:"Marvin Daniel Ramirez Beltran",               estatus:"Por contactar",           comentarios:"Cliente de Alejandro",                                                                                       fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Contactar para iniciar proceso",                     prioridad:"SEGUIMIENTO"},
+  {n:3,  unidad:"1004", cliente:"Juan Azuara / Frida Montemayor",              estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Confirmar firma esta semana",                        prioridad:"OK"},
+  {n:4,  unidad:"1011", cliente:"Marcela Chavarria Gonzalez",                  estatus:"No contesta",             comentarios:"Me ha dejado plantada 2 veces — no responde",                                                                fechaLimite:"",          adeudo:"$632,039",  mesesVenc:"", accion:"",                                                   prioridad:"ESTA SEMANA"},
+  {n:5,  unidad:"1014", cliente:"Alejandro Malo López",                        estatus:"Firmado",                  comentarios:"Firmado (de Queen a Lennon)",                                                                                 fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:6,  unidad:"1106", cliente:"Itzel Pelayo Hernandez",                      estatus:"Firmado",                  comentarios:"Firmado: enviar oferta Buen Fin equipamiento",                                                               fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"ESTA SEMANA"},
+  {n:7,  unidad:"1107", cliente:"Guillermo Muñoz Valero",                      estatus:"Crítico",                  comentarios:"Ya se le propuso mismo depto (1422→1405) pero mantiene que el proyecto ya no es atractivo para él",          fechaLimite:"",          adeudo:"$658,159",  mesesVenc:"", accion:"",                                                   prioridad:"SEGUIMIENTO"},
+  {n:8,  unidad:"1114", cliente:"Tomas Escamilla Linaje",                      estatus:"Liga Enviada",             comentarios:"Falta que firmen la terminación",                                                                            fechaLimite:"",          adeudo:"$265,147",  mesesVenc:"19", accion:"",                                                  prioridad:"URGENTE"},
+  {n:9,  unidad:"1115", cliente:"Mario Herrera / Marcela Martínez",            estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"$283,814",  mesesVenc:"20", accion:"",                                                  prioridad:"URGENTE"},
+  {n:10, unidad:"1116", cliente:"Ricardo Troncoso Rodriguez",                  estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:11, unidad:"1407", cliente:"PROJECTCOACH, S.C.",                          estatus:"Por contactar",            comentarios:"Cliente de Alejandro",                                                                                       fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Coordinar con Alejandro",                             prioridad:"SEGUIMIENTO"},
+  {n:12, unidad:"1501", cliente:"Andrea Fernández Salinas",                    estatus:"Firmado",                  comentarios:"Firmado con mezanine desde diciembre",                                                                       fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:13, unidad:"1502", cliente:"Miguel Armando Domínguez Beltrán",            estatus:"Liberación sin acuerdo",   comentarios:"Está de viaje. Quería devolución sin penalidad. Al ver penalidad 15% pidió papelería para decidir",           fechaLimite:"",          adeudo:"$211,827",  mesesVenc:"3",  accion:"",                                                  prioridad:"URGENTE"},
+  {n:14, unidad:"1504", cliente:"María Antonieta Sánchez Hernández",           estatus:"Cancelado",                comentarios:"Cancelado — no contestó mensajes",                                                                           fechaLimite:"",          adeudo:"$286,023",  mesesVenc:"7",  accion:"",                                                  prioridad:"OK"},
+  {n:15, unidad:"1509", cliente:"Andrea Mayela Chapa",                         estatus:"Por contactar",            comentarios:"",                                                                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Verificar si aplica MZ, plazo y cuenta",             prioridad:"SEGUIMIENTO"},
+  {n:16, unidad:"1510", cliente:"Miguel Angel de Luna",                        estatus:"Por contactar",            comentarios:"",                                                                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Verificar si aplica MZ, plazo y cuenta",             prioridad:"SEGUIMIENTO"},
+  {n:17, unidad:"1511", cliente:"Jesús Rodrigo Peña Sifuentes",                estatus:"Aviso de Incumplimiento",  comentarios:"Avisarle que ya está la terminal en el showroom — si el 2-jun no paga, enviar aviso de incumplimiento",       fechaLimite:"05-jun",    adeudo:"$234,978",  mesesVenc:"", accion:"",                                                   prioridad:"URGENTE"},
+  {n:18, unidad:"1512", cliente:"Jesús Salomón Garza Cantú",                   estatus:"Crítico",                  comentarios:"Se le enviaron planos con medidas de 3 opciones (2 Queen, 1 Lennon) el 05-jun-2026",                         fechaLimite:"",          adeudo:"$55,500",   mesesVenc:"3",  accion:"",                                                  prioridad:"URGENTE"},
+  {n:19, unidad:"1515", cliente:"Fernando Estrada Bautista",                   estatus:"Por contactar",            comentarios:"",                                                                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Verificar si aplica MZ, plazo y cuenta",             prioridad:"SEGUIMIENTO"},
+  {n:20, unidad:"1517", cliente:"Fabián Azael Ordaz Lumbreras",                estatus:"Liberación sin acuerdo",   comentarios:"No acepta incremento m2. Correo con deadline 15 mayo. Solicitó propuesta alternativa",                      fechaLimite:"15/05/2026", adeudo:"$187,110", mesesVenc:"1",  accion:"",                                                  prioridad:"ESTA SEMANA"},
+  {n:21, unidad:"1518", cliente:"Yael Villarreal Rosales",                     estatus:"Por contactar",            comentarios:"Compró con las nuevas condiciones y con mezanine",                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Verificar si aplica MZ, plazo y cuenta",             prioridad:"SEGUIMIENTO"},
+  {n:22, unidad:"1702", cliente:"Antonio Garcia Flores",                       estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"URGENTE"},
+  {n:23, unidad:"1703", cliente:"José Manuel Ventura Domínguez",               estatus:"Liga Enviada",             comentarios:"Se le enviaron los PDF para vobo y mandar ligas",                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Confirmar aceptación antes del 15",                  prioridad:"ESTA SEMANA"},
+  {n:24, unidad:"1709", cliente:"Heidi Alicia Sagaón Arguelles",               estatus:"Aviso de Incumplimiento",  comentarios:"Firmado. Quiere mezanine de contado hasta inicios 2027 — nueva preventa / aviso de incumplimiento vence 15-jun",fechaLimite:"15-jun",   adeudo:"$0",        mesesVenc:"", accion:"",                                                   prioridad:"SEGUIMIENTO"},
+  {n:25, unidad:"1710", cliente:"Oscar Segovia Hernandez",                     estatus:"Por contactar",            comentarios:"",                                                                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Verificar si aplica MZ, plazo y cuenta",             prioridad:"SEGUIMIENTO"},
+  {n:26, unidad:"1712", cliente:"Cesar Eugenio Macias Silva",                  estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"$859,605",  mesesVenc:"23", accion:"",                                                  prioridad:"URGENTE"},
+  {n:27, unidad:"1903", cliente:"David Martínez Valdés",                       estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:28, unidad:"1911", cliente:"Fernando Hugo Ramirez Gonzalez",              estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:29, unidad:"1912", cliente:"Jaime Gonzalez Ortiz",                        estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"URGENTE"},
+  {n:30, unidad:"1913", cliente:"Federico Alcerreca Salas",                    estatus:"Crítico",                  comentarios:"Firmemente negado a firmar preventa y ODC — Alejandra Barajas",                                              fechaLimite:"",          adeudo:"$0",        mesesVenc:"", accion:"",                                                   prioridad:"URGENTE"},
+  {n:31, unidad:"1917", cliente:"Dosax Desarrollos",                           estatus:"DOSAX",                    comentarios:"Depto corporativo",                                                                                          fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:32, unidad:"2102", cliente:"Siyoung Jang",                                estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"ESTA SEMANA"},
+  {n:33, unidad:"2103", cliente:"SMARFLEET S.A.P.I. DE C.V.",                  estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"$158,027",  mesesVenc:"11", accion:"",                                                  prioridad:"URGENTE"},
+  {n:34, unidad:"2104", cliente:"Ricardo Troncoso Rodriguez (2104)",            estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:35, unidad:"2105", cliente:"Antonio Castellanos / Juana Cruz",            estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:36, unidad:"2109", cliente:"Juan Carlos Méndez Méndez",                   estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"ESTA SEMANA"},
+  {n:37, unidad:"2112", cliente:"Jesus Ignacio Garza Benavides",               estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:38, unidad:"2113", cliente:"Eva Cristina Quintanilla Muruaga",            estatus:"Crítico",                  comentarios:"No acepta incremento M2 ni depto Lennon — quiere Queen con m2 originales. Cita AB y MAG (25-may-26)",        fechaLimite:"",          adeudo:"$1,200,000",mesesVenc:"", accion:"",                                                   prioridad:"URGENTE"},
+  {n:39, unidad:"2114", cliente:"Ricardo Ortiz Ibarra",                        estatus:"Negociación",              comentarios:"✅ Acuerdo aceptado: contado deuda+m2, condonación intereses, mezanine en mensualidades. En espera de PDF y ligas a firma",fechaLimite:"", adeudo:"$581,433", mesesVenc:"27", accion:"Preparar docs y ligas — URGENTE",           prioridad:"URGENTE"},
+  {n:40, unidad:"2303", cliente:"Edelmiro Cantu / Jesús González",             estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:41, unidad:"2304", cliente:"Felipe De Jesús Solis García",                estatus:"Crítico",                  comentarios:"2 opciones de plan de pagos enviadas — no acepta pagar intereses. Alega retrasos de Qorus como causa",       fechaLimite:"",          adeudo:"$578,165",  mesesVenc:"23", accion:"",                                                  prioridad:"URGENTE"},
+  {n:42, unidad:"2305", cliente:"Orlando Vargas Nava",                         estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"ESTA SEMANA"},
+  {n:43, unidad:"2309", cliente:"Alondra Castañeda Valera",                    estatus:"Negociación",              comentarios:"Volvió a contactar y se re-envió documentación. Quedó en revisarla y dar retro",                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Seguimiento — respuesta antes del 15",               prioridad:"ESTA SEMANA"},
+  {n:44, unidad:"2310", cliente:"Israel Isaías González / Karla Blanco",       estatus:"Negociación",              comentarios:"PDFs enviados con actualizaciones. En espera de vobo. Correo 03-jun con deadline 05-jun. Revisando con abogado",fechaLimite:"05/06/2026",adeudo:"",   mesesVenc:"", accion:"Responder a Israel — buena señal, actuar",           prioridad:"URGENTE"},
+  {n:45, unidad:"2311", cliente:"Claudia Cecilia Gomez Arellano",              estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"$175,000",  mesesVenc:"12", accion:"",                                                  prioridad:"URGENTE"},
+  {n:46, unidad:"2312", cliente:"Esau Gaona Moreno (†)",                       estatus:"Cancelado",                comentarios:"Testamento entregado — enviado a área legal",                                                               fechaLimite:"12/06/2026", adeudo:"",          mesesVenc:"", accion:"Cita con viuda — confirmar papelería",                prioridad:"ESTA SEMANA"},
+  {n:47, unidad:"2313", cliente:"Heesun Kang",                                 estatus:"No contesta",              comentarios:"05-mar: cita. No acepta intereses. Sin respuesta desde entonces. Probable cancelación",                      fechaLimite:"22/04 ⚠",  adeudo:"$318,543",  mesesVenc:"", accion:"",                                                   prioridad:"URGENTE"},
+  {n:48, unidad:"2314", cliente:"Eutimio Arellano Machuca",                    estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:49, unidad:"2501", cliente:"María Luisa Alejandra Cavazos Mata",          estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:50, unidad:"2503", cliente:"Andres Garza",                                estatus:"Liga Enviada",             comentarios:"Ligas enviadas pero no firmó — no acepta que m2 del nicho superior se cobren como inferiores",               fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Seguimiento — confirmar antes del 15",               prioridad:"ESTA SEMANA"},
+  {n:51, unidad:"2504", cliente:"Gisselle Gallegos Aviña",                     estatus:"Crítico",                  comentarios:"05-jun vino con abogados. No acepta incremento m2. Evalúa cancelar y recuperar dinero íntegro + permisos",   fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Seguimiento — confirmar antes del 15",               prioridad:"ESTA SEMANA"},
+  {n:52, unidad:"2505", cliente:"Dionisio Nicolas Benavides G.",               estatus:"Liberación sin acuerdo",   comentarios:"No acepta incremento M2 — quiere Queen con m2 originales (22-may-26)",                                       fechaLimite:"",          adeudo:"$862,000",  mesesVenc:"", accion:"",                                                   prioridad:"ESTA SEMANA"},
+  {n:53, unidad:"2508", cliente:"Alberto Martínez Gutierrez",                  estatus:"Negociación",              comentarios:"PDFs enviados, en espera del Vobo",                                                                          fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Llamada directa",                                    prioridad:"ESTA SEMANA"},
+  {n:54, unidad:"2509", cliente:"Fabián Arturo Mata Orsua",                    estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"ESTA SEMANA"},
+  {n:55, unidad:"2510", cliente:"Sarahi Galindo",                              estatus:"Por contactar",            comentarios:"",                                                                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Verificar si aplica MZ, plazo y cuenta",             prioridad:"SEGUIMIENTO"},
+  {n:56, unidad:"2511", cliente:"Isaac Alejandro Esparza Garza",               estatus:"Cancelado",                comentarios:"Cancelado — nos dejó plantados",                                                                            fechaLimite:"",          adeudo:"$1,035,782",mesesVenc:"21", accion:"Proceso legal",                                     prioridad:"OK"},
+  {n:57, unidad:"2512", cliente:"Gustavo y Raúl Silva de Santiago",            estatus:"Firmado",                  comentarios:"Firmado",                                                                                                    fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:58, unidad:"2513", cliente:"Rubén Guillén León",                          estatus:"Cancelado",                comentarios:"Cancelado. Devolución con penalidad — dinero regresado",                                                     fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"",                                                   prioridad:"OK"},
+  {n:59, unidad:"2516", cliente:"Ali Josmar De Leon Manriquez",                estatus:"Crítico",                  comentarios:"04-jun: revisó preventa poniendo trabas por penalizaciones excesivas. Pidió contrato adherido a PROFECO",    fechaLimite:"",          adeudo:"$563,950",  mesesVenc:"", accion:"",                                                   prioridad:"URGENTE"},
+  {n:60, unidad:"2517", cliente:"Sandra Elizeth Hernandez",                    estatus:"Por contactar",            comentarios:"",                                                                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Verificar si aplica MZ, plazo y cuenta",             prioridad:"SEGUIMIENTO"},
+  {n:61, unidad:"2518", cliente:"Carlos Alberto Godinez",                      estatus:"Por contactar",            comentarios:"",                                                                                                           fechaLimite:"",          adeudo:"",          mesesVenc:"", accion:"Verificar si aplica MZ, plazo y cuenta",             prioridad:"SEGUIMIENTO"},
+];
+
+const ASESORES = [
+  {asesor:"André Aguila",           ventas:18, valor:"$60,301,951", ventasMayo:2, valorMayo:"$8,129,900", sep:"10"},
+  {asesor:"Cynthia Montemayor",     ventas:11, valor:"$45,500,748", ventasMayo:3, valorMayo:"$15,327,173", sep:"—"},
+  {asesor:"Paulina Loera",          ventas:8,  valor:"$31,603,428", ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Eric Maurilio Terrazas", ventas:4,  valor:"$18,477,935", ventasMayo:0, valorMayo:"—",           sep:"2"},
+  {asesor:"Mariela Ancira",         ventas:4,  valor:"$17,312,978", ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Nelly Moreno",           ventas:4,  valor:"$17,033,077", ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Alejandra Barajas",      ventas:3,  valor:"$13,504,322", ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Juan Manuel Aguirre",    ventas:2,  valor:"$8,021,333",  ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Juan Pablo Montemayor",  ventas:1,  valor:"$3,435,595",  ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Ogarita Diaz",           ventas:1,  valor:"$3,286,237",  ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Daniela Aguilera",       ventas:1,  valor:"$3,090,453",  ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Alejandro Garcia",       ventas:1,  valor:"$2,428,051",  ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Dosax 1",                ventas:1,  valor:"$4,083,382",  ventasMayo:0, valorMayo:"—",           sep:"—"},
+  {asesor:"Joel Gongora",           ventas:0,  valor:"—",           ventasMayo:0, valorMayo:"—",           sep:"2"},
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentTab = 'dashboard';
+let modifications = {};
+let filteredVentas = [...VENTAS];
+let filteredCartera = [...COBRANZA];
+let soloVencida = false;
+let filteredQO = [...QO];
+const sortState = {};
+
+// ============================================================
+// SORTABLE COLUMNS
+// ============================================================
+function sortBy(tableKey, col, type) {
+  if (!sortState[tableKey]) sortState[tableKey] = { col: null, dir: 'asc' };
+  const s = sortState[tableKey];
+  s.dir = (s.col === col) ? (s.dir === 'asc' ? 'desc' : 'asc') : 'asc';
+  s.col = col;
+  const mult = s.dir === 'asc' ? 1 : -1;
+
+  const arr = tableKey === 'qo'      ? filteredQO      :
+              tableKey === 'ventas'  ? filteredVentas   :
+              tableKey === 'cartera' ? filteredCartera  :
+              tableKey === 'sep'     ? SEP_CLIENTES     :
+              tableKey === 'asesor'  ? ASESORES         : null;
+  if (!arr) return;
+
+  arr.sort((a, b) => {
+    let va = a[col], vb = b[col];
+    if (type === 'num') {
+      va = parseFloat(String(va||'').replace(/[$,%\s]/g,'').replace(/,/g,'')) || 0;
+      vb = parseFloat(String(vb||'').replace(/[$,%\s]/g,'').replace(/,/g,'')) || 0;
+      return (va - vb) * mult;
+    }
+    if (type === 'pri') {
+      const O = {'URGENTE':0,'ESTA SEMANA':1,'SEGUIMIENTO':2,'OK':3};
+      return (((O[va])??99) - ((O[vb])??99)) * mult;
+    }
+    va = String(va||'').toLowerCase();
+    vb = String(vb||'').toLowerCase();
+    return (va < vb ? -1 : va > vb ? 1 : 0) * mult;
+  });
+
+  if (tableKey === 'qo')      renderQOBody();
+  if (tableKey === 'ventas')  renderVentasBody();
+  if (tableKey === 'cartera') renderCarteraBody();
+  if (tableKey === 'sep')     renderSeparaciones();
+  if (tableKey === 'asesor')  renderAsesor();
+
+  updateSortIndicators(tableKey, col, s.dir);
+}
+
+function updateSortIndicators(tableKey, col, dir) {
+  const idMap = {qo:'qo-table',ventas:'ventas-table',cartera:'cartera-table',sep:'sep-table',asesor:'asesor-table'};
+  const tbl = document.getElementById(idMap[tableKey]);
+  if (!tbl) return;
+  tbl.querySelectorAll('thead th.sortable').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.dataset.col === col) th.classList.add(dir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+}
+
+// Load saved modifications from localStorage
+function loadSaved() {
+  try {
+    const saved = localStorage.getItem('qorus_modifications');
+    if (saved) modifications = JSON.parse(saved);
+  } catch(e) {}
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+
+  if (tab === 'ventas') renderVentas();
+  if (tab === 'separaciones') renderSeparaciones();
+  if (tab === 'cartera') renderCartera();
+  if (tab === 'qo') renderQO();
+  if (tab === 'asesor') renderAsesor();
+}
+
+// ============================================================
+// STATUS BADGE
+// ============================================================
+function statusBadge(estatus) {
+  const map = {
+    '✔ Activa':                  'badge-ok',
+    '⚠ Revisar':                 'badge-warn',
+    'Firmado':                   'badge-ok',
+    'En proceso de firma':       'badge-blue',
+    'Negociación':               'badge-warn',
+    'Posible Cancelación':       'badge-danger',
+    'Cancelado':                 'badge-gray',
+    'Liga Enviada':              'badge-blue',
+    'Crítico':                   'badge-danger',
+    'Por contactar':             'badge-blue',
+    'No contesta':               'badge-warn',
+    'Aviso de Incumplimiento':   'badge-danger',
+    'Liberación sin acuerdo':    'badge-warn',
+    'DOSAX':                     'badge-gray',
+  };
+  const cls = map[estatus] || 'badge-gray';
+  return `<span class="badge ${cls}">${estatus}</span>`;
+}
+
+function diasBadge(dias) {
+  if (!dias) return '';
+  const d = parseInt(dias);
+  if (isNaN(d) || d === 0) return '';
+  if (d > 300) return `<span class="badge badge-danger">${d}d</span>`;
+  if (d > 90)  return `<span class="badge badge-warn">${d}d</span>`;
+  if (d > 30)  return `<span class="badge badge-blue">${d}d</span>`;
+  return `<span class="badge badge-gray">${d}d</span>`;
+}
+
+// ============================================================
+// EDITABLE
+// ============================================================
+function editable(key, value, field) {
+  const saved = modifications[key] && modifications[key][field];
+  const display = saved !== undefined ? saved : value;
+  return `<span class="editable" contenteditable="true"
+    data-key="${key}" data-field="${field}" data-original="${value}"
+    onblur="saveEdit(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+    >${display}</span>${saved !== undefined && saved !== value ? '<span class="modified-indicator" title="Modificado"></span>' : ''}`;
+}
+
+function saveEdit(el) {
+  const key = el.dataset.key;
+  const field = el.dataset.field;
+  const original = el.dataset.original;
+  const newVal = el.textContent.trim();
+  if (!modifications[key]) modifications[key] = {};
+  if (newVal !== original) {
+    modifications[key][field] = newVal;
+    showSaveBar();
+  } else {
+    delete modifications[key][field];
+    el.nextElementSibling && el.nextElementSibling.classList.contains('modified-indicator') && el.nextElementSibling.remove();
+  }
+}
+
+function showSaveBar() {
+  document.getElementById('save-bar').classList.add('visible');
+}
+
+function saveChanges() {
+  localStorage.setItem('qorus_modifications', JSON.stringify(modifications));
+  document.getElementById('save-bar').classList.remove('visible');
+}
+
+function discardChanges() {
+  if (confirm('¿Descartar todos los cambios sin guardar?')) {
+    modifications = {};
+    document.getElementById('save-bar').classList.remove('visible');
+    renderAll();
+  }
+}
+
+// ============================================================
+// VENTAS
+// ============================================================
+function populateAsesorFilter(selectId, data) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const asesores = [...new Set(data.map(r => r.asesor))].sort();
+  asesores.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    sel.appendChild(opt);
+  });
+}
+
+function filterVentas() {
+  const q = document.getElementById('ventas-search').value.toLowerCase();
+  const asesor = document.getElementById('ventas-asesor').value;
+  filteredVentas = VENTAS.filter(v => {
+    const matchQ = !q || v.cliente.toLowerCase().includes(q) || v.unidad.includes(q) || v.asesor.toLowerCase().includes(q);
+    const matchA = !asesor || v.asesor === asesor;
+    return matchQ && matchA;
+  });
+  renderVentasBody();
+  document.getElementById('ventas-count').textContent = `(${filteredVentas.length} de ${VENTAS.length})`;
+}
+
+function renderVentas() {
+  populateAsesorFilter('ventas-asesor', VENTAS);
+  filteredVentas = [...VENTAS];
+  renderVentasBody();
+  document.getElementById('ventas-count').textContent = `(${VENTAS.length})`;
+}
+
+function renderVentasBody() {
+  const tbody = document.getElementById('ventas-body');
+  tbody.innerHTML = filteredVentas.map(v => {
+    const k = `v_${v.unidad}`;
+    const hasCartera = v.cartera && v.cartera !== '' && v.cartera !== '$0';
+    return `<tr>
+      <td class="center" style="color:var(--muted);font-size:11px;">${v.n}</td>
+      <td><strong>${editable(k, v.unidad, 'unidad')}</strong></td>
+      <td style="max-width:240px;">${editable(k, v.cliente, 'cliente')}</td>
+      <td>${editable(k, v.asesor, 'asesor')}</td>
+      <td class="num">${editable(k, v.precio, 'precio')}</td>
+      <td class="num" style="color:var(--muted);">${v.eng}</td>
+      <td class="num" style="color:var(--muted);">${v.cons}</td>
+      <td class="num" style="color:var(--muted);">${v.esc}</td>
+      <td class="num">${v.sep !== '-' ? `<span style="color:var(--ok);">${v.sep}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+      <td class="num">${editable(k, v.cobrado, 'cobrado')}</td>
+      <td class="num">${hasCartera ? `<span style="color:var(--danger);">${editable(k, v.cartera, 'cartera')}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+      <td class="center">${diasBadge(v.dias)}</td>
+      <td style="white-space:nowrap;">${v.fventa}</td>
+      <td style="white-space:nowrap;">${v.ffirma}</td>
+      <td style="white-space:nowrap;color:var(--muted);">${v.fescritur}</td>
+    </tr>`;
+  }).join('');
+
+  // Total row
+  tbody.innerHTML += `<tr class="total-row">
+    <td colspan="4">TOTAL — 59 unidades</td>
+    <td class="num">$228,079,494</td>
+    <td colspan="3"></td>
+    <td class="num">$180,000</td>
+    <td class="num">$49,922,979</td>
+    <td class="num" style="color:var(--danger);">$1,925,746</td>
+    <td colspan="4"></td>
+  </tr>`;
+}
+
+// ============================================================
+// SEPARACIONES
+// ============================================================
+function renderSeparaciones() {
+  const sepBody = document.getElementById('sep-body');
+  sepBody.innerHTML = SEP_CLIENTES.map(s => {
+    const k = `sep_${s.unidad}`;
+    return `<tr>
+      <td class="center" style="color:var(--muted);font-size:11px;">${s.n}</td>
+      <td><strong>${s.unidad}</strong></td>
+      <td>${editable(k, s.cliente, 'cliente')}</td>
+      <td>${editable(k, s.asesor, 'asesor')}</td>
+      <td class="num">${editable(k, s.monto, 'monto')}</td>
+      <td>${s.fecha}</td>
+      <td class="num">${diasBadge(s.dias)}</td>
+      <td>${statusBadge(s.estatus)}</td>
+      <td style="color:var(--muted);">${s.fescritur}</td>
+    </tr>`;
+  }).join('');
+  sepBody.innerHTML += `<tr class="total-row"><td colspan="4">ACTIVAS: 4</td><td class="num">$70,000</td><td colspan="4"></td></tr>`;
+
+  const loboBody = document.getElementById('lobo-body');
+  loboBody.innerHTML = SEP_LOBO.map(s => {
+    return `<tr>
+      <td class="center" style="color:var(--muted);font-size:11px;">${s.n}</td>
+      <td><strong>${s.unidad}</strong></td>
+      <td style="color:var(--muted);">${s.completas}</td>
+      <td>${s.asesor}</td>
+      <td class="num">$1</td>
+      <td>${s.fecha}</td>
+      <td class="num">${diasBadge(s.dias)}</td>
+      <td>${statusBadge(s.estatus)}</td>
+      <td style="color:var(--muted);">${s.fescritur}</td>
+    </tr>`;
+  }).join('');
+  loboBody.innerHTML += `<tr class="total-row"><td colspan="3">TOTAL LOBO: 10 unidades</td><td></td><td class="num">$10</td><td colspan="4"></td></tr>`;
+}
+
+// ============================================================
+// COBRANZA
+// ============================================================
+function toggleVencida() {
+  soloVencida = !soloVencida;
+  const btn = document.getElementById('btn-vencida');
+  if (soloVencida) {
+    btn.style.background = 'var(--danger)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--danger)';
+  } else {
+    btn.style.background = 'var(--danger-light)'; btn.style.color = 'var(--danger)'; btn.style.borderColor = '#fecaca';
+  }
+  filterCartera();
+}
+
+function filterCartera() {
+  const asesor = document.getElementById('cartera-asesor').value;
+  const sort = document.getElementById('cartera-sort').value;
+  filteredCartera = COBRANZA.filter(c => {
+    const matchA = !asesor || c.asesor === asesor;
+    const matchV = !soloVencida || c.cartVencidaNum > 0;
+    return matchA && matchV;
+  });
+  if (sort === 'dias')    filteredCartera.sort((a,b) => b.diasVencidos - a.diasVencidos);
+  else if (sort === 'pct') filteredCartera.sort((a,b) => parseFloat(a.pct) - parseFloat(b.pct));
+  else                    filteredCartera.sort((a,b) => b.cartVencidaNum - a.cartVencidaNum);
+  renderCarteraBody();
+}
+
+function renderCartera() {
+  populateAsesorFilter('cartera-asesor', COBRANZA);
+  soloVencida = false;
+  const btn = document.getElementById('btn-vencida');
+  if (btn) { btn.style.background='var(--danger-light)';btn.style.color='var(--danger)';btn.style.borderColor='#fecaca'; }
+  filteredCartera = [...COBRANZA];
+  renderCarteraBody();
+}
+
+function renderCarteraBody() {
+  const tbody = document.getElementById('cartera-body');
+  const vencidaRows = filteredCartera.filter(c => c.cartVencidaNum > 0);
+  const maxV = vencidaRows.length > 0 ? Math.max(...vencidaRows.map(c => c.cartVencidaNum)) : 1;
+
+  tbody.innerHTML = filteredCartera.map(c => {
+    const k = `cart_${c.unidad}`;
+    const hasV = c.cartVencidaNum > 0;
+    const barW = hasV ? Math.round((c.cartVencidaNum / maxV) * 80) : 0;
+    const saved = modifications[k];
+    const notas = (saved && saved.notas !== undefined) ? saved.notas : c.notas;
+    const rowStyle = hasV ? 'background:#fff8f8;' : '';
+    return `<tr style="${rowStyle}">
+      <td><strong>${c.unidad}</strong></td>
+      <td style="max-width:200px;">${c.cliente}</td>
+      <td>${c.asesor}</td>
+      <td class="num" style="color:var(--muted);">${c.precio}</td>
+      <td class="num">${c.cobrado}</td>
+      <td class="num">${c.pct}</td>
+      <td class="num" style="font-size:11px;color:var(--muted);">${hasV ? c.cartVigente : '<span style="color:var(--ok);font-size:10px;">Al corriente</span>'}</td>
+      <td class="num">
+        ${hasV ? `<span class="cartera-bar" style="width:${barW}px;"></span><span style="color:var(--danger);font-weight:bold;">${editable(k, c.cartVencida, 'cartVencida')}</span>` : '<span style="color:#ccc;">—</span>'}
+      </td>
+      <td class="center">${c.diasVencidos > 0 ? diasBadge(String(c.diasVencidos)) : ''}</td>
+      <td style="max-width:200px;"><span class="editable" contenteditable="true"
+        data-key="${k}" data-field="notas" data-original="${c.notas}"
+        onblur="saveEdit(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+        style="font-size:11px;color:var(--muted);min-width:80px;">${notas || '<em>Agregar nota…</em>'}</span></td>
+    </tr>`;
+  }).join('');
+
+  const cnt = filteredCartera.length;
+  const vcnt = filteredCartera.filter(c => c.cartVencidaNum > 0).length;
+  const el = document.getElementById('cobranza-count');
+  if (el) el.textContent = `(${cnt} unidades${vcnt > 0 ? ' · ' + vcnt + ' con cartera vencida' : ''})`;
+
+  tbody.innerHTML += `<tr class="total-row"><td colspan="7">TOTAL COBRANZA (59 unidades)</td>
+    <td class="num" style="color:var(--danger);">$1,925,746</td>
+    <td colspan="2"></td></tr>`;
+}
+
+// ============================================================
+// QO CLIENTES
+// ============================================================
+function filterQO() {
+  const q  = document.getElementById('qo-search').value.toLowerCase();
+  const st = document.getElementById('qo-status').value;
+  const pr = document.getElementById('qo-prioridad').value;
+  filteredQO = QO.filter(r => {
+    const matchQ = !q  || r.cliente.toLowerCase().includes(q) || r.unidad.includes(q) || (r.comentarios||'').toLowerCase().includes(q);
+    const matchS = !st || r.estatus === st;
+    const matchP = !pr || r.prioridad === pr;
+    return matchQ && matchS && matchP;
+  });
+  renderQOBody();
+}
+
+function renderQO() {
+  filteredQO = [...QO];
+  renderQOBody();
+}
+
+const QO_GROUPS = ['Firmado','Liga Enviada','Negociación','Aviso de Incumplimiento','Liberación sin acuerdo','Crítico','Por contactar','No contesta','DOSAX','Cancelado'];
+const QO_GROUP_LABELS = {
+  'Firmado':                   'FIRMADO',
+  'Liga Enviada':              'LIGA ENVIADA',
+  'Negociación':               'NEGOCIACIÓN',
+  'Aviso de Incumplimiento':   'AVISO DE INCUMPLIMIENTO',
+  'Liberación sin acuerdo':    'LIBERACIÓN SIN ACUERDO',
+  'Crítico':                   'CRÍTICO',
+  'Por contactar':             'POR CONTACTAR',
+  'No contesta':               'NO CONTESTA',
+  'DOSAX':                     'DOSAX',
+  'Cancelado':                 'CANCELADO',
+};
+
+const PRIORIDAD_ORDER = { 'URGENTE':1, 'ESTA SEMANA':2, 'SEGUIMIENTO':3, 'OK':4 };
+
+function prioridadBadge(p) {
+  const map = {
+    'URGENTE':      '<span class="badge badge-danger">🔴 URGENTE</span>',
+    'ESTA SEMANA':  '<span class="badge badge-warn">🟠 ESTA SEMANA</span>',
+    'SEGUIMIENTO':  '<span class="badge" style="background:#fef9c3;color:#854d0e;">🟡 SEGUIMIENTO</span>',
+    'OK':           '<span class="badge badge-gray">⚪ OK</span>',
+  };
+  return map[p] || `<span class="badge badge-gray">${p}</span>`;
+}
+
+function renderQOBody() {
+  const tbody = document.getElementById('qo-body');
+  let html = '';
+  const searchActive = document.getElementById('qo-search').value || document.getElementById('qo-status').value;
+
+  if (searchActive) {
+    html = filteredQO.map(r => renderQORow(r)).join('');
+  } else {
+    QO_GROUPS.forEach(grp => {
+      const rows = filteredQO.filter(r => r.estatus === grp);
+      if (rows.length === 0) return;
+      html += `<tr class="group-header"><td colspan="8">${QO_GROUP_LABELS[grp]} · ${rows.length} clientes</td></tr>`;
+      html += rows.map(r => renderQORow(r)).join('');
+    });
+  }
+
+  tbody.innerHTML = html || `<tr><td colspan="8" class="empty">Sin resultados</td></tr>`;
+}
+
+function renderQORow(r) {
+  const k = `qo_${r.unidad}_${r.n}`;
+  return `<tr>
+    <td><strong style="font-family:'PT Mono',monospace;font-size:11px;">${r.unidad}</strong></td>
+    <td style="max-width:180px;">${r.cliente}</td>
+    <td>${statusBadge(r.estatus)}</td>
+    <td>${prioridadBadge(r.prioridad)}</td>
+    <td class="num">${r.adeudo ? `<span style="color:var(--danger);font-weight:600;">${r.adeudo}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+    <td class="center" style="color:var(--muted);">${r.mesesVenc || '—'}</td>
+    <td style="font-size:10px;color:var(--muted);">${r.fechaLimite || '—'}</td>
+    <td style="max-width:280px;font-size:11px;color:var(--muted);">${editable(k, r.comentarios || r.accion, 'comentarios')}</td>
+  </tr>`;
+}
+
+// ============================================================
+// ASESOR
+// ============================================================
+function renderAsesor() {
+  const tbody = document.getElementById('asesor-body');
+  const maxVentas = Math.max(...ASESORES.map(a => a.ventas));
+  tbody.innerHTML = ASESORES.map(a => {
+    const barW = Math.round((a.ventas / maxVentas) * 60);
+    return `<tr>
+      <td><strong>${a.asesor}</strong></td>
+      <td class="num">
+        <span style="display:inline-block;width:${barW}px;height:6px;background:var(--qorus-green);border-radius:1px;margin-right:6px;vertical-align:middle;"></span>
+        ${a.ventas > 0 ? a.ventas : '<span style="color:var(--muted);">0</span>'}
+      </td>
+      <td class="num">${a.valor}</td>
+      <td class="num">${a.ventasMayo > 0 ? `<span style="color:var(--qorus-green-dark);font-weight:bold;">${a.ventasMayo}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+      <td class="num" style="color:var(--muted);">${a.valorMayo}</td>
+      <td class="num">${a.sep !== '—' ? `<span class="badge badge-ok">${a.sep}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML += `<tr class="total-row">
+    <td>TOTAL</td>
+    <td class="num">59</td>
+    <td class="num">$228,079,494</td>
+    <td class="num">5</td>
+    <td class="num">$23,457,073</td>
+    <td class="num">12</td>
+  </tr>`;
+}
+
+// ============================================================
+// DASHBOARD CHARTS
+// ============================================================
+function renderDashboard() {
+  // Asesor bar chart
+  const asesorEl = document.getElementById('dash-asesor-chart');
+  const topAsesores = ASESORES.filter(a => a.ventas > 0).slice(0, 7);
+  const maxV = Math.max(...topAsesores.map(a => a.ventas));
+  asesorEl.innerHTML = topAsesores.map((a, i) => {
+    const colors = ['#AADB1E','#0032A0','#E5007E','#AADB1E','#0032A0','#E5007E','#AADB1E'];
+    const c = colors[i % colors.length];
+    return `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+      <div style="width:110px;font-family:'PT Mono',monospace;font-size:9px;text-align:right;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.5px;" title="${a.asesor}">${a.asesor}</div>
+      <div style="flex:1;background:#f0f0ee;border-radius:1px;height:16px;position:relative;">
+        <div style="width:${Math.round(a.ventas/maxV*100)}%;background:${c};height:100%;border-radius:1px;transition:width 0.3s;"></div>
+        <span style="position:absolute;left:6px;top:0;line-height:16px;font-family:'PT Mono',monospace;font-size:9px;color:#000;font-weight:bold;">${a.ventas}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Cartera vencida top 8
+  const carteraEl = document.getElementById('dash-cartera-chart');
+  const top8 = [...COBRANZA].filter(c => c.cartVencidaNum > 0).sort((a,b) => b.cartVencidaNum - a.cartVencidaNum).slice(0,8);
+  const maxC = top8.length > 0 ? top8[0].cartVencidaNum : 1;
+  carteraEl.innerHTML = top8.map(c => {
+    return `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+      <div style="width:110px;font-size:11px;text-align:right;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${c.cliente}">${c.cliente.split(' ').slice(0,2).join(' ')}</div>
+      <div style="flex:1;background:#f8eaea;border-radius:1px;height:16px;position:relative;">
+        <div style="width:${Math.round(c.cartVencidaNum/maxC*100)}%;background:#b91c1c;height:100%;border-radius:1px;"></div>
+        <span style="position:absolute;left:6px;top:0;line-height:16px;font-family:'PT Mono',monospace;font-size:9px;color:#fff;font-weight:bold;">${c.cartVencida}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // QO donut-like
+  const qoEl = document.getElementById('dash-qo-chart');
+  const qoCounts = {};
+  QO_GROUPS.forEach(g => qoCounts[g] = QO.filter(r => r.estatus === g).length);
+  const qoColors = {
+    'Firmado':                   '#AADB1E',
+    'Liga Enviada':              '#0032A0',
+    'Negociación':               '#E5007E',
+    'Aviso de Incumplimiento':   '#b91c1c',
+    'Liberación sin acuerdo':    '#f59e0b',
+    'Crítico':                   '#dc2626',
+    'Por contactar':             '#3b82f6',
+    'No contesta':               '#92400e',
+    'DOSAX':                     '#6b7280',
+    'Cancelado':                 '#999999',
+  };
+  qoEl.innerHTML = QO_GROUPS.map(g => {
+    if (!qoCounts[g]) return '';
+    const clr = qoColors[g] || '#888888';
+    const pct = Math.round(qoCounts[g] / QO.length * 100);
+    return `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
+      <div style="width:3px;height:30px;background:${clr};flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <div style="display:flex;justify-content:space-between;font-family:'PT Mono',monospace;font-size:9px;letter-spacing:0.5px;">
+          <span style="color:var(--muted);text-transform:uppercase;">${g}</span>
+          <span style="font-weight:bold;color:${clr};">${qoCounts[g]}</span>
+        </div>
+        <div style="height:4px;background:#f0f0ee;margin-top:4px;">
+          <div style="width:${pct}%;height:100%;background:${clr};"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Separaciones
+  const sepEl = document.getElementById('dash-sep-list');
+  sepEl.innerHTML = SEP_CLIENTES.map(s => `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f0f0ee;">
+      <div>
+        <div style="font-family:'PT Mono',monospace;font-size:10px;font-weight:bold;letter-spacing:1px;">Unidad ${s.unidad}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:1px;">${s.cliente}</div>
+        <div style="font-family:'PT Mono',monospace;font-size:9px;color:#aaa;letter-spacing:0.5px;">${s.asesor}</div>
+      </div>
+      <div style="text-align:right;">
+        ${statusBadge(s.estatus)}
+        <div style="font-family:'PT Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;">${s.dias} días</div>
+      </div>
+    </div>
+  `).join('') + `<div style="margin-top:10px;font-family:'PT Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.5px;">+ 10 Lobo Inversionistas (André Aguila)</div>`;
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportTable(tableId, filename) {
+  const table = document.getElementById(tableId);
+  const rows = table.querySelectorAll('tr');
+  const csv = Array.from(rows).map(row => {
+    return Array.from(row.querySelectorAll('th,td')).map(cell => {
+      const text = cell.textContent.trim().replace(/"/g, '""');
+      return `"${text}"`;
+    }).join(',');
+  }).join('\n');
+
+  const blob = new Blob(['﻿' + csv], {type: 'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${filename}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+const SESSION_KEY = 'qorus_session_v2';
+const ACCESS_PASS = 'Postventa2026';
+
+function doLogin() {
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('visible');
+  errEl.textContent = '';
+
+  if (!pass) {
+    errEl.textContent = 'Ingresa la contraseña de acceso.';
+    errEl.classList.add('visible');
+    return;
+  }
+  if (pass !== ACCESS_PASS) {
+    errEl.textContent = 'Contraseña incorrecta.';
+    errEl.classList.add('visible');
+    document.getElementById('login-pass').value = '';
+    return;
+  }
+
+  localStorage.setItem(SESSION_KEY, '1');
+  enterApp();
+}
+
+function enterApp() {
+  document.getElementById('auth-overlay').classList.add('hidden');
+  document.getElementById('user-pill').style.display = 'flex';
+}
+
+function doLogout() {
+  localStorage.removeItem(SESSION_KEY);
+  document.getElementById('auth-overlay').classList.remove('hidden');
+  document.getElementById('user-pill').style.display = 'none';
+  document.getElementById('login-pass').value = '';
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('visible');
+  errEl.textContent = '';
+}
+
+function checkSession() {
+  if (localStorage.getItem(SESSION_KEY) === '1') {
+    enterApp();
+    return;
+  }
+  document.getElementById('auth-overlay').classList.remove('hidden');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function renderAll() {
+  renderDashboard();
+  if (currentTab === 'ventas') renderVentas();
+  if (currentTab === 'separaciones') renderSeparaciones();
+  if (currentTab === 'cartera') renderCartera();
+  if (currentTab === 'qo') renderQO();
+  if (currentTab === 'asesor') renderAsesor();
+}
+
+loadSaved();
+renderDashboard();
+checkSession();
+</script>
+
+<footer>
+  <div class="footer-brand">Dosax</div>
+  <div class="footer-tag">QORUS · AL RITMO DE CIUDAD</div>
+</footer>
+
+</body>
+</html>
