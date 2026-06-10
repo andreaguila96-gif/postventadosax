@@ -238,6 +238,10 @@
   .tab:hover { color: var(--text); }
   .tab.active { color: #000000; border-bottom-color: var(--qorus-green); font-weight: bold; }
 
+  .project-switcher { display:flex; align-items:center; padding:0 16px 0 0; margin-right:8px; border-right:2px solid var(--border); }
+  .project-select { font-family:'PT Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; border:1px solid var(--border); outline:none; background:#000; color:#fff; cursor:pointer; padding:5px 10px; font-weight:bold; border-radius:2px; }
+  #tabs-qorus, #tabs-kanat2 { display:flex; gap:0; }
+
   main { padding: 28px 32px; }
 
   .section-header {
@@ -498,6 +502,7 @@
   </div>
 </header>
 
+<div id="section-qorus">
 <div class="kpi-bar">
   <div class="kpi">
     <div class="kpi-label">Vendidas</div>
@@ -532,12 +537,26 @@
 </div>
 
 <nav>
-  <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
-  <div class="tab" onclick="showTab('ventas')">Ventas <span style="color:var(--muted);font-weight:normal;">(59)</span></div>
-  <div class="tab" onclick="showTab('separaciones')">Separaciones <span style="color:var(--muted);font-weight:normal;">(14)</span></div>
-  <div class="tab" onclick="showTab('cartera')">Cobranza <span style="color:var(--muted);font-weight:normal;">(59)</span></div>
-  <div class="tab" onclick="showTab('qo')">QO Clientes <span style="color:var(--muted);font-weight:normal;">(61)</span></div>
-  <div class="tab" onclick="showTab('asesor')">Por Asesor</div>
+  <div class="project-switcher">
+    <select id="project-select" class="project-select" onchange="switchProject(this.value)">
+      <option value="qorus">QORUS</option>
+      <option value="kanat2">KANAT T2</option>
+    </select>
+  </div>
+  <div id="tabs-qorus">
+    <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
+    <div class="tab" onclick="showTab('ventas')">Ventas <span style="color:var(--muted);font-weight:normal;">(59)</span></div>
+    <div class="tab" onclick="showTab('separaciones')">Separaciones <span style="color:var(--muted);font-weight:normal;">(14)</span></div>
+    <div class="tab" onclick="showTab('cartera')">Cobranza <span style="color:var(--muted);font-weight:normal;">(59)</span></div>
+    <div class="tab" onclick="showTab('qo')">QO Clientes <span style="color:var(--muted);font-weight:normal;">(61)</span></div>
+    <div class="tab" onclick="showTab('asesor')">Por Asesor</div>
+  </div>
+  <div id="tabs-kanat2" style="display:none">
+    <div class="tab active" onclick="showK2Tab('k2-dashboard')">Dashboard</div>
+    <div class="tab" onclick="showK2Tab('k2-ventas')">Ventas <span style="color:var(--muted);font-weight:normal;">(24)</span></div>
+    <div class="tab" onclick="showK2Tab('k2-cartera')">Cobranza <span style="color:var(--muted);font-weight:normal;">(24)</span></div>
+    <div class="tab" onclick="showK2Tab('k2-asesor')">Por Asesor</div>
+  </div>
 </nav>
 
 <main>
@@ -764,6 +783,131 @@
     </table>
   </div>
 </div>
+
+</div><!-- /section-qorus -->
+
+<!-- ============================================================ -->
+<!-- KANAT TORRE 2 PROJECT SECTION                                 -->
+<!-- ============================================================ -->
+<div id="section-kanat2" style="display:none">
+
+<div class="kpi-bar">
+  <div class="kpi"><div class="kpi-label">Vendidas</div><div class="kpi-value">24</div><div class="kpi-sub">unidades totales</div></div>
+  <div class="kpi"><div class="kpi-label">Ventas Jun 2026</div><div class="kpi-value">2</div><div class="kpi-sub">274 · 277</div></div>
+  <div class="kpi"><div class="kpi-label">Cobrado Total</div><div class="kpi-value" style="font-size:20px;">$18,893,480</div><div class="kpi-sub">acumulado histórico</div></div>
+  <div class="kpi"><div class="kpi-label">Cobranza Jun 2026</div><div class="kpi-value" style="font-size:20px;">$25,000</div><div class="kpi-sub">sep. unidad 274</div></div>
+  <div class="kpi"><div class="kpi-label">Cartera Vencida</div><div class="kpi-value" style="color:var(--danger);font-size:20px;">$5,028,644</div><div class="kpi-sub">11 unidades con adeudo</div></div>
+  <div class="kpi"><div class="kpi-label">Precio Total Cartera</div><div class="kpi-value" style="font-size:18px;">$158,346,347</div><div class="kpi-sub">valor total vendido</div></div>
+</div>
+
+<!-- K2 DASHBOARD -->
+<div id="k2-dashboard" class="panel active">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--qorus-green);border-radius:3px;padding:18px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— Ventas por Asesor</div>
+      <div id="k2-dash-asesor-chart"></div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--danger);border-radius:3px;padding:18px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— Cartera Vencida · Top 8</div>
+      <div id="k2-dash-vencida-chart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- K2 VENTAS -->
+<div id="k2-ventas" class="panel">
+  <div class="section-header">
+    <div><span class="section-title">Ventas Kanat Torre 2</span><span class="section-count" id="k2-ventas-count">(24 unidades)</span></div>
+    <div class="toolbar">
+      <input class="search-box" id="k2-ventas-search" placeholder="Buscar cliente, unidad..." oninput="filterK2Ventas()" style="width:190px;">
+      <select class="filter-select" id="k2-ventas-asesor" onchange="filterK2Ventas()">
+        <option value="">Todos los asesores</option>
+      </select>
+      <button class="btn btn-sm" onclick="exportTable('k2-ventas-table','Ventas_Kanat2')">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap" style="max-height:600px;overflow-y:auto;">
+    <table id="k2-ventas-table">
+      <thead><tr>
+        <th>#</th>
+        <th class="sortable" data-col="unidad" onclick="sortBy('k2ventas','unidad','str')">Unidad</th>
+        <th class="sortable" data-col="cliente" onclick="sortBy('k2ventas','cliente','str')">Cliente</th>
+        <th class="sortable" data-col="asesor" onclick="sortBy('k2ventas','asesor','str')">Asesor</th>
+        <th class="num sortable" data-col="precioNum" onclick="sortBy('k2ventas','precioNum','num')">Precio Venta</th>
+        <th class="num">Eng %</th><th class="num">Cons %</th><th class="num">Esc %</th>
+        <th class="num sortable" data-col="cobradoNum" onclick="sortBy('k2ventas','cobradoNum','num')">Cobrado</th>
+        <th class="num sortable" data-col="cartVencidaNum" onclick="sortBy('k2ventas','cartVencidaNum','num')">Cartera Vencida</th>
+        <th class="num sortable" data-col="diasVencidos" onclick="sortBy('k2ventas','diasVencidos','num')">Días Venc.</th>
+        <th class="sortable" data-col="fventa" onclick="sortBy('k2ventas','fventa','str')">Fecha Venta</th>
+        <th>F. Escritur.</th>
+      </tr></thead>
+      <tbody id="k2-ventas-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- K2 COBRANZA -->
+<div id="k2-cartera" class="panel">
+  <div class="section-header">
+    <div><span class="section-title">Cobranza Kanat Torre 2</span><span class="section-count" id="k2-cartera-count">(24 unidades)</span></div>
+    <div class="toolbar">
+      <button class="btn btn-sm" id="k2-btn-vencida" onclick="toggleK2Vencida()"
+        style="background:var(--danger-light);color:var(--danger);border-color:#fecaca;">Solo cartera vencida</button>
+      <select class="filter-select" id="k2-cartera-asesor" onchange="filterK2Cartera()">
+        <option value="">Todos los asesores</option>
+      </select>
+      <select class="filter-select" id="k2-cartera-sort" onchange="filterK2Cartera()">
+        <option value="vencida">Ordenar: Vencida ↓</option>
+        <option value="dias">Ordenar: Días vencidos ↓</option>
+        <option value="pct">Ordenar: % Pagado ↑</option>
+      </select>
+      <button class="btn btn-sm" onclick="exportTable('k2-cartera-table','Cobranza_Kanat2')">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap" style="max-height:600px;overflow-y:auto;">
+    <table id="k2-cartera-table">
+      <thead><tr>
+        <th class="sortable" data-col="unidad" onclick="sortBy('k2cartera','unidad','str')">Unidad</th>
+        <th class="sortable" data-col="cliente" onclick="sortBy('k2cartera','cliente','str')">Cliente</th>
+        <th class="sortable" data-col="asesor" onclick="sortBy('k2cartera','asesor','str')">Asesor</th>
+        <th class="num sortable" data-col="precioNum" onclick="sortBy('k2cartera','precioNum','num')">Precio Venta</th>
+        <th class="num sortable" data-col="cobradoNum" onclick="sortBy('k2cartera','cobradoNum','num')">Cobrado Real</th>
+        <th class="num sortable" data-col="pctNum" onclick="sortBy('k2cartera','pctNum','num')">% Pagado</th>
+        <th class="num sortable" data-col="cartVigenteNum" onclick="sortBy('k2cartera','cartVigenteNum','num')">Cart. Vigente</th>
+        <th class="num sortable" data-col="cartVencidaNum" onclick="sortBy('k2cartera','cartVencidaNum','num')">Cartera Vencida</th>
+        <th class="num sortable" data-col="diasVencidos" onclick="sortBy('k2cartera','diasVencidos','num')">Días Venc.</th>
+        <th>Notas</th>
+      </tr></thead>
+      <tbody id="k2-cartera-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- K2 POR ASESOR -->
+<div id="k2-asesor" class="panel">
+  <div class="section-header">
+    <div><span class="section-title">Resumen por Asesor — Kanat Torre 2</span></div>
+    <div class="toolbar">
+      <button class="btn btn-sm" onclick="exportTable('k2-asesor-table','PorAsesor_Kanat2')">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table id="k2-asesor-table">
+      <thead><tr>
+        <th class="sortable" data-col="asesor" onclick="sortBy('k2asesor','asesor','str')">Asesor</th>
+        <th class="num sortable" data-col="ventas" onclick="sortBy('k2asesor','ventas','num')">Ventas Totales</th>
+        <th class="num sortable" data-col="valorNum" onclick="sortBy('k2asesor','valorNum','num')">Valor Total</th>
+        <th class="num sortable" data-col="ventasMayo" onclick="sortBy('k2asesor','ventasMayo','num')">Ventas May 2026</th>
+        <th class="num sortable" data-col="ventasJun" onclick="sortBy('k2asesor','ventasJun','num')">Ventas Jun 2026</th>
+        <th class="num sortable" data-col="cobradoNum" onclick="sortBy('k2asesor','cobradoNum','num')">Cobrado Total</th>
+        <th class="num sortable" data-col="cartVencidaNum" onclick="sortBy('k2asesor','cartVencidaNum','num')">Cartera Vencida</th>
+      </tr></thead>
+      <tbody id="k2-asesor-body"></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /section-kanat2 -->
 
 </main>
 
@@ -1026,11 +1170,14 @@ function sortBy(tableKey, col, type) {
   s.col = col;
   const mult = s.dir === 'asc' ? 1 : -1;
 
-  const arr = tableKey === 'qo'      ? filteredQO      :
-              tableKey === 'ventas'  ? filteredVentas   :
-              tableKey === 'cartera' ? filteredCartera  :
-              tableKey === 'sep'     ? SEP_CLIENTES     :
-              tableKey === 'asesor'  ? ASESORES         : null;
+  const arr = tableKey === 'qo'        ? filteredQO        :
+              tableKey === 'ventas'   ? filteredVentas    :
+              tableKey === 'cartera'  ? filteredCartera   :
+              tableKey === 'sep'      ? SEP_CLIENTES      :
+              tableKey === 'asesor'   ? ASESORES          :
+              tableKey === 'k2ventas' ? filteredK2Ventas  :
+              tableKey === 'k2cartera'? filteredK2Cartera :
+              tableKey === 'k2asesor' ? K2_ASESORES       : null;
   if (!arr) return;
 
   arr.sort((a, b) => {
@@ -1049,17 +1196,23 @@ function sortBy(tableKey, col, type) {
     return (va < vb ? -1 : va > vb ? 1 : 0) * mult;
   });
 
-  if (tableKey === 'qo')      renderQOBody();
-  if (tableKey === 'ventas')  renderVentasBody();
-  if (tableKey === 'cartera') renderCarteraBody();
-  if (tableKey === 'sep')     renderSeparaciones();
-  if (tableKey === 'asesor')  renderAsesor();
+  if (tableKey === 'qo')        renderQOBody();
+  if (tableKey === 'ventas')   renderVentasBody();
+  if (tableKey === 'cartera')  renderCarteraBody();
+  if (tableKey === 'sep')      renderSeparaciones();
+  if (tableKey === 'asesor')   renderAsesor();
+  if (tableKey === 'k2ventas') renderK2VentasBody();
+  if (tableKey === 'k2cartera')renderK2CarteraBody();
+  if (tableKey === 'k2asesor') renderK2AsesorBody();
 
   updateSortIndicators(tableKey, col, s.dir);
 }
 
 function updateSortIndicators(tableKey, col, dir) {
-  const idMap = {qo:'qo-table',ventas:'ventas-table',cartera:'cartera-table',sep:'sep-table',asesor:'asesor-table'};
+  const idMap = {
+    qo:'qo-table', ventas:'ventas-table', cartera:'cartera-table', sep:'sep-table', asesor:'asesor-table',
+    k2ventas:'k2-ventas-table', k2cartera:'k2-cartera-table', k2asesor:'k2-asesor-table'
+  };
   const tbl = document.getElementById(idMap[tableKey]);
   if (!tbl) return;
   tbl.querySelectorAll('thead th.sortable').forEach(th => {
@@ -1081,8 +1234,8 @@ function loadSaved() {
 // ============================================================
 function showTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#tabs-qorus .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#section-qorus .panel').forEach(p => p.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
 
@@ -1640,6 +1793,289 @@ function renderAll() {
 loadSaved();
 renderDashboard();
 checkSession();
+
+// ============================================================
+// KANAT TORRE 2 — DATA
+// ============================================================
+const K2_VENTAS = [
+  {n:1,  unidad:"274",  cliente:"Jaime Israel Moreno Treviño",           asesor:"André Aguila",              precioNum:6809894,  precio:"$6,809,894", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$25,000",  cobradoNum:25000,    cobrado:"$25,000",    cartVencidaNum:655989,  cartera:"$655,989", diasVencidos:7,   fventa:"10/06/2026", ffirma:"03/06/2026", fescritur:"31/05/2028"},
+  {n:2,  unidad:"277",  cliente:"David Leal",                            asesor:"Martha Isabel Cavazos",     precioNum:5604985,  precio:"$5,604,985", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000",  cobradoNum:560500,   cobrado:"$560,500",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"02/06/2026", ffirma:"22/05/2026", fescritur:"31/05/2028"},
+  {n:3,  unidad:"2144", cliente:"Ana Cecilia Vasquez Gomez",             asesor:"André Aguila",              precioNum:6891403,  precio:"$6,891,403", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000",  cobradoNum:689140,   cobrado:"$689,140",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"14/05/2026", ffirma:"12/05/2026", fescritur:"31/08/2028"},
+  {n:4,  unidad:"2166", cliente:"Gustavo Cruz Vidal",                    asesor:"André Aguila",              precioNum:8622883,  precio:"$8,622,883", eng:"35.0%", cons:"30.0%", esc:"35.0%", sep:"$20,000",  cobradoNum:3018009,  cobrado:"$3,018,009", cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"18/05/2026", ffirma:"15/05/2026", fescritur:"31/08/2028"},
+  {n:5,  unidad:"2148", cliente:"Anamaria de Lourdes Gallardo Galindo",  asesor:"Mercedes Cova",             precioNum:6872579,  precio:"$6,872,579", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$0",       cobradoNum:687258,   cobrado:"$687,258",   cartVencidaNum:24545,   cartera:"$24,545",  diasVencidos:6,   fventa:"18/05/2026", ffirma:"12/05/2026", fescritur:"30/09/2028"},
+  {n:6,  unidad:"2141", cliente:"Anamaria de Lourdes Gallardo Galindo",  asesor:"Mercedes Cova",             precioNum:6927557,  precio:"$6,927,557", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$0",       cobradoNum:692756,   cobrado:"$692,756",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"07/05/2026", ffirma:"07/05/2026", fescritur:"31/08/2028"},
+  {n:7,  unidad:"283",  cliente:"Liza Beyer de la Garza",                asesor:"Martha Isabel Cavazos",     precioNum:7246735,  precio:"$7,246,735", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"$20,000",  cobradoNum:1170626,  cobrado:"$1,170,626", cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"01/04/2026", ffirma:"31/03/2026", fescritur:"31/05/2028"},
+  {n:8,  unidad:"275",  cliente:"Dosax Desarrollos S.A. de C.V.",        asesor:"André Aguila",              precioNum:6269341,  precio:"$6,269,341", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"$1",       cobradoNum:1,        cobrado:"$1",         cartVencidaNum:978016,  cartera:"$978,016", diasVencidos:41,  fventa:"05/03/2026", ffirma:"05/03/2026", fescritur:"31/05/2028"},
+  {n:9,  unidad:"287",  cliente:"Jesús Mauricio Tamez Elizondo",         asesor:"Mercedes Cova",             precioNum:5537822,  precio:"$5,537,822", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000",  cobradoNum:601938,   cobrado:"$601,938",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"01/04/2026", ffirma:"01/04/2026", fescritur:"31/05/2028"},
+  {n:10, unidad:"285",  cliente:"Ana Lilia Muñoz Cisneros",              asesor:"André Aguila",              precioNum:6044641,  precio:"$6,044,641", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"$0",       cobradoNum:1020033,  cobrado:"$1,020,033", cartVencidaNum:37779,   cartera:"$37,779",  diasVencidos:10,  fventa:"11/02/2026", ffirma:"11/02/2026", fescritur:"31/01/2028"},
+  {n:11, unidad:"296",  cliente:"Dosax Desarrollos S.A. de C.V.",        asesor:"André Aguila",              precioNum:6892381,  precio:"$6,892,381", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"$1",       cobradoNum:1,        cobrado:"$1",         cartVencidaNum:1075210, cartera:"$1,075,210",diasVencidos:41,  fventa:"05/03/2026", ffirma:"05/03/2026", fescritur:"31/05/2028"},
+  {n:12, unidad:"295",  cliente:"Dosax Desarrollos S.A. de C.V.",        asesor:"André Aguila",              precioNum:6127028,  precio:"$6,127,028", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"$1",       cobradoNum:1,        cobrado:"$1",         cartVencidaNum:955815,  cartera:"$955,815", diasVencidos:41,  fventa:"05/03/2026", ffirma:"05/03/2026", fescritur:"31/05/2028"},
+  {n:13, unidad:"286",  cliente:"Dosax Desarrollos S.A. de C.V.",        asesor:"André Aguila",              precioNum:6892381,  precio:"$6,892,381", eng:"15.0%", cons:"15.0%", esc:"70.0%", sep:"$1",       cobradoNum:1,        cobrado:"$1",         cartVencidaNum:1075210, cartera:"$1,075,210",diasVencidos:41,  fventa:"05/03/2026", ffirma:"05/03/2026", fescritur:"31/05/2028"},
+  {n:14, unidad:"282",  cliente:"Irma Uribe García",                     asesor:"Ana Margarita Soto",        precioNum:5491921,  precio:"$5,491,921", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$0",       cobradoNum:1900000,  cobrado:"$1,900,000", cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"10/12/2025", ffirma:"10/12/2025", fescritur:"31/01/2028"},
+  {n:15, unidad:"224",  cliente:"Eugenio Beyer de la Garza",             asesor:"Martha Isabel Cavazos",     precioNum:6052133,  precio:"$6,052,133", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$5,000",   cobradoNum:706082,   cobrado:"$706,082",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"28/11/2025", ffirma:"28/11/2025", fescritur:"31/01/2028"},
+  {n:16, unidad:"2113", cliente:"Julian Karam Diego",                    asesor:"Mercedes Cova",             precioNum:6940226,  precio:"$6,940,226", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$5,000",   cobradoNum:824152,   cobrado:"$824,152",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"28/11/2025", ffirma:"28/11/2025", fescritur:"31/07/2028"},
+  {n:17, unidad:"272",  cliente:"Patricia Uribe Garcia",                 asesor:"Ana Margarita Soto",        precioNum:5320965,  precio:"$5,320,965", eng:"10.0%", cons:"9.7%",  esc:"80.3%", sep:"$5,000",   cobradoNum:1049695,  cobrado:"$1,049,695", cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"28/11/2025", ffirma:"28/11/2025", fescritur:"31/01/2028"},
+  {n:18, unidad:"293",  cliente:"Salvador Garza Montemayor",             asesor:"Ana Margarita Soto",        precioNum:7127408,  precio:"$7,127,408", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$5,000",   cobradoNum:854806,   cobrado:"$854,806",   cartVencidaNum:22413,   cartera:"$22,413",  diasVencidos:13,  fventa:"28/11/2025", ffirma:"28/11/2025", fescritur:"31/01/2028"},
+  {n:19, unidad:"2103", cliente:"Luis Roberto Treviño Perez",            asesor:"Ana Margarita Soto",        precioNum:7070114,  precio:"$7,070,114", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$5,000",   cobradoNum:707012,   cobrado:"$707,012",   cartVencidaNum:163156,  cartera:"$163,156", diasVencidos:166, fventa:"26/11/2025", ffirma:"26/11/2025", fescritur:"31/01/2028"},
+  {n:20, unidad:"223",  cliente:"Cesar Humberto Iribe Lozano",           asesor:"Martha Isabel Cavazos",     precioNum:6739682,  precio:"$6,739,682", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000",  cobradoNum:829499,   cobrado:"$829,499",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"28/11/2025", ffirma:"28/11/2025", fescritur:"31/01/2028"},
+  {n:21, unidad:"261",  cliente:"Eduardo Alberto Guzman Huerta",         asesor:"Ana Margarita Soto",        precioNum:6339577,  precio:"$6,339,577", eng:"5.0%",  cons:"15.0%", esc:"80.0%", sep:"$20,000",  cobradoNum:554713,   cobrado:"$554,713",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"28/11/2025", ffirma:"28/11/2025", fescritur:"31/01/2028"},
+  {n:22, unidad:"251",  cliente:"Jose Alejandro Gonzalez Ramos",         asesor:"Mercedes Cova",             precioNum:6324577,  precio:"$6,324,577", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000",  cobradoNum:631638,   cobrado:"$631,638",   cartVencidaNum:819,     cartera:"$819",     diasVencidos:192, fventa:"06/10/2025", ffirma:"06/10/2025", fescritur:"29/02/2028"},
+  {n:23, unidad:"241",  cliente:"Daniela Benavides Peart",               asesor:"Ana Margarita Soto",        precioNum:6549806,  precio:"$6,549,806", eng:"10.0%", cons:"10.0%", esc:"80.0%", sep:"$20,000",  cobradoNum:829642,   cobrado:"$829,642",   cartVencidaNum:0,       cartera:"$0",       diasVencidos:0,   fventa:"11/09/2025", ffirma:"11/09/2025", fescritur:"30/03/2028"},
+  {n:24, unidad:"2183", cliente:"Ignacio Alejandro Llantada Brito",      asesor:"Leonel III Sáenz Villareal",precioNum:7650309,  precio:"$7,650,309", eng:"13.4%", cons:"16.6%", esc:"70.0%", sep:"$0",       cobradoNum:1540975,  cobrado:"$1,540,975", cartVencidaNum:39690,   cartera:"$39,690",  diasVencidos:10,  fventa:"28/03/2025", ffirma:"27/03/2025", fescritur:"30/12/2027"},
+];
+
+const K2_COBRANZA = K2_VENTAS.map(v => ({
+  unidad:        v.unidad,
+  cliente:       v.cliente,
+  asesor:        v.asesor,
+  precioNum:     v.precioNum,
+  precio:        v.precio,
+  cobradoNum:    v.cobradoNum,
+  cobrado:       v.cobrado,
+  pctNum:        parseFloat((v.cobradoNum / v.precioNum * 100).toFixed(2)),
+  pct:           (v.cobradoNum / v.precioNum * 100).toFixed(1) + '%',
+  cartVigenteNum:Math.max(0, v.precioNum - v.cobradoNum - v.cartVencidaNum),
+  cartVigente:   '$' + Math.max(0, v.precioNum - v.cobradoNum - v.cartVencidaNum).toLocaleString('en-US', {maximumFractionDigits:0}),
+  cartVencidaNum:v.cartVencidaNum,
+  cartVencida:   v.cartera,
+  diasVencidos:  v.diasVencidos,
+  notas:         '',
+}));
+
+const K2_ASESORES = [
+  {asesor:"André Aguila",              ventas:8, valorNum:54549952, valor:"$54,549,952", ventasMayo:2, ventasJun:1, cobradoNum:4752186, cobrado:"$4,752,186", cartVencidaNum:4778019, cartVencida:"$4,778,019"},
+  {asesor:"Martha Isabel Cavazos",     ventas:4, valorNum:25643535, valor:"$25,643,535", ventasMayo:0, ventasJun:1, cobradoNum:3266707, cobrado:"$3,266,707", cartVencidaNum:0,       cartVencida:"$0"},
+  {asesor:"Mercedes Cova",             ventas:5, valorNum:32602761, valor:"$32,602,761", ventasMayo:2, ventasJun:0, cobradoNum:3437742, cobrado:"$3,437,742", cartVencidaNum:25364,   cartVencida:"$25,364"},
+  {asesor:"Ana Margarita Soto",        ventas:6, valorNum:37899791, valor:"$37,899,791", ventasMayo:0, ventasJun:0, cobradoNum:5895868, cobrado:"$5,895,868", cartVencidaNum:185569,  cartVencida:"$185,569"},
+  {asesor:"Leonel III Sáenz Villareal",ventas:1, valorNum:7650309,  valor:"$7,650,309",  ventasMayo:0, ventasJun:0, cobradoNum:1540975, cobrado:"$1,540,975", cartVencidaNum:39690,   cartVencida:"$39,690"},
+];
+
+let filteredK2Ventas  = [...K2_VENTAS];
+let filteredK2Cartera = [...K2_COBRANZA];
+let soloK2Vencida     = false;
+let currentK2Tab      = 'k2-dashboard';
+let currentProject    = 'qorus';
+
+// ============================================================
+// KANAT 2 — PROJECT SWITCHER
+// ============================================================
+function switchProject(proj) {
+  currentProject = proj;
+  document.getElementById('tabs-qorus').style.display     = proj === 'qorus'  ? '' : 'none';
+  document.getElementById('tabs-kanat2').style.display    = proj === 'kanat2' ? '' : 'none';
+  document.getElementById('section-qorus').style.display  = proj === 'qorus'  ? '' : 'none';
+  document.getElementById('section-kanat2').style.display = proj === 'kanat2' ? '' : 'none';
+  if (proj === 'kanat2') {
+    document.querySelectorAll('#tabs-kanat2 .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#section-kanat2 .panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('#tabs-kanat2 .tab').classList.add('active');
+    document.getElementById('k2-dashboard').classList.add('active');
+    currentK2Tab = 'k2-dashboard';
+    renderK2Dashboard();
+  }
+}
+
+function showK2Tab(tab) {
+  currentK2Tab = tab;
+  document.querySelectorAll('#tabs-kanat2 .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#section-kanat2 .panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tab).classList.add('active');
+  if (tab === 'k2-dashboard') renderK2Dashboard();
+  if (tab === 'k2-ventas')    renderK2Ventas();
+  if (tab === 'k2-cartera')   renderK2Cartera();
+  if (tab === 'k2-asesor')    renderK2Asesor();
+}
+
+// ============================================================
+// KANAT 2 — VENTAS
+// ============================================================
+function renderK2Ventas() {
+  if (document.getElementById('k2-ventas-asesor').options.length <= 1) {
+    populateAsesorFilter('k2-ventas-asesor', K2_VENTAS);
+  }
+  filteredK2Ventas = [...K2_VENTAS];
+  renderK2VentasBody();
+  document.getElementById('k2-ventas-count').textContent = `(${K2_VENTAS.length} unidades)`;
+}
+
+function filterK2Ventas() {
+  const q = document.getElementById('k2-ventas-search').value.toLowerCase();
+  const a = document.getElementById('k2-ventas-asesor').value;
+  filteredK2Ventas = K2_VENTAS.filter(v => {
+    const mQ = !q || v.cliente.toLowerCase().includes(q) || v.unidad.includes(q) || v.asesor.toLowerCase().includes(q);
+    const mA = !a || v.asesor === a;
+    return mQ && mA;
+  });
+  renderK2VentasBody();
+  document.getElementById('k2-ventas-count').textContent = `(${filteredK2Ventas.length} de ${K2_VENTAS.length})`;
+}
+
+function renderK2VentasBody() {
+  const tbody = document.getElementById('k2-ventas-body');
+  const hasV = v => v.cartVencidaNum > 0;
+  tbody.innerHTML = filteredK2Ventas.map(v => {
+    const k = `k2v_${v.unidad}`;
+    return `<tr>
+      <td class="center" style="color:var(--muted);font-size:11px;">${v.n}</td>
+      <td><strong style="font-family:'PT Mono',monospace;font-size:11px;">${v.unidad}</strong></td>
+      <td>${editable(k, v.cliente, 'cliente')}</td>
+      <td style="font-size:11px;">${v.asesor}</td>
+      <td class="num">${v.precio}</td>
+      <td class="num" style="color:var(--muted);">${v.eng}</td>
+      <td class="num" style="color:var(--muted);">${v.cons}</td>
+      <td class="num" style="color:var(--muted);">${v.esc}</td>
+      <td class="num">${v.cobrado}</td>
+      <td class="num">${hasV(v) ? `<span style="color:var(--danger);font-weight:600;">${v.cartera}</span>` : '<span style="color:var(--muted);">$0</span>'}</td>
+      <td class="num">${v.diasVencidos > 0 ? diasBadge(v.diasVencidos) : '<span style="color:var(--muted);">—</span>'}</td>
+      <td style="font-size:11px;">${v.fventa}</td>
+      <td style="font-size:11px;color:var(--muted);">${v.fescritur}</td>
+    </tr>`;
+  }).join('');
+  const tot = filteredK2Ventas.reduce((s,v)=>s+v.precioNum,0);
+  const totC = filteredK2Ventas.reduce((s,v)=>s+v.cobradoNum,0);
+  tbody.innerHTML += `<tr class="total-row">
+    <td></td><td colspan="3">TOTAL: ${filteredK2Ventas.length} unidades</td>
+    <td class="num">$${tot.toLocaleString('en-US',{maximumFractionDigits:0})}</td>
+    <td colspan="3"></td>
+    <td class="num">$${totC.toLocaleString('en-US',{maximumFractionDigits:0})}</td>
+    <td colspan="4"></td>
+  </tr>`;
+}
+
+// ============================================================
+// KANAT 2 — COBRANZA
+// ============================================================
+function renderK2Cartera() {
+  if (document.getElementById('k2-cartera-asesor').options.length <= 1) {
+    populateAsesorFilter('k2-cartera-asesor', K2_COBRANZA);
+  }
+  filteredK2Cartera = [...K2_COBRANZA];
+  filterK2Cartera();
+}
+
+function toggleK2Vencida() {
+  soloK2Vencida = !soloK2Vencida;
+  const btn = document.getElementById('k2-btn-vencida');
+  if (soloK2Vencida) { btn.style.background='var(--danger)'; btn.style.color='#fff'; btn.style.borderColor='var(--danger)'; }
+  else               { btn.style.background='var(--danger-light)'; btn.style.color='var(--danger)'; btn.style.borderColor='#fecaca'; }
+  filterK2Cartera();
+}
+
+function filterK2Cartera() {
+  const a    = document.getElementById('k2-cartera-asesor').value;
+  const sort = document.getElementById('k2-cartera-sort').value;
+  filteredK2Cartera = K2_COBRANZA.filter(c => {
+    const mA = !a || c.asesor === a;
+    const mV = !soloK2Vencida || c.cartVencidaNum > 0;
+    return mA && mV;
+  });
+  if (sort === 'dias')     filteredK2Cartera.sort((a,b) => b.diasVencidos - a.diasVencidos);
+  else if (sort === 'pct') filteredK2Cartera.sort((a,b) => a.pctNum - b.pctNum);
+  else                     filteredK2Cartera.sort((a,b) => b.cartVencidaNum - a.cartVencidaNum);
+  renderK2CarteraBody();
+}
+
+function renderK2CarteraBody() {
+  const tbody = document.getElementById('k2-cartera-body');
+  const vRows = filteredK2Cartera.filter(c => c.cartVencidaNum > 0);
+  const maxV  = vRows.length > 0 ? Math.max(...vRows.map(c => c.cartVencidaNum)) : 1;
+  tbody.innerHTML = filteredK2Cartera.map(c => {
+    const k = `k2c_${c.unidad}`;
+    const hasV = c.cartVencidaNum > 0;
+    const barW = hasV ? Math.round((c.cartVencidaNum / maxV) * 80) : 0;
+    return `<tr${hasV ? ' style="background:var(--danger-light);"' : ''}>
+      <td><strong style="font-family:'PT Mono',monospace;font-size:11px;">${c.unidad}</strong></td>
+      <td>${c.cliente}</td>
+      <td style="font-size:11px;">${c.asesor}</td>
+      <td class="num">${c.precio}</td>
+      <td class="num">${c.cobrado}</td>
+      <td class="num">${c.pct}</td>
+      <td class="num" style="color:var(--muted);">${c.cartVigente}</td>
+      <td class="num">${hasV ? `<span style="color:var(--danger);font-weight:600;">${c.cartVencida}</span><span style="display:inline-block;width:${barW}px;height:3px;background:var(--danger);margin-left:4px;vertical-align:middle;opacity:.5;"></span>` : '<span style="color:var(--muted);">$0</span>'}</td>
+      <td class="num">${hasV ? diasBadge(c.diasVencidos) : '<span style="color:var(--muted);">—</span>'}</td>
+      <td>${editable(k, c.notas, 'notas')}</td>
+    </tr>`;
+  }).join('');
+  const cnt = filteredK2Cartera.length;
+  const vcnt = filteredK2Cartera.filter(c => c.cartVencidaNum > 0).length;
+  const el = document.getElementById('k2-cartera-count');
+  if (el) el.textContent = `(${cnt} unidades${vcnt > 0 ? ' · ' + vcnt + ' con cartera vencida' : ''})`;
+}
+
+// ============================================================
+// KANAT 2 — POR ASESOR
+// ============================================================
+function renderK2Asesor() { renderK2AsesorBody(); }
+
+function renderK2AsesorBody() {
+  const tbody = document.getElementById('k2-asesor-body');
+  const maxV  = Math.max(...K2_ASESORES.map(a => a.ventas));
+  tbody.innerHTML = K2_ASESORES.map(a => {
+    const barW = Math.round((a.ventas / maxV) * 60);
+    return `<tr>
+      <td><strong>${a.asesor}</strong></td>
+      <td class="num">
+        <span style="display:inline-block;width:${barW}px;height:6px;background:var(--qorus-green);border-radius:1px;margin-right:6px;vertical-align:middle;"></span>
+        ${a.ventas}
+      </td>
+      <td class="num">${a.valor}</td>
+      <td class="num">${a.ventasMayo > 0 ? `<span style="color:var(--qorus-green-dark);font-weight:bold;">${a.ventasMayo}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+      <td class="num">${a.ventasJun > 0 ? `<span style="color:var(--qorus-green-dark);font-weight:bold;">${a.ventasJun}</span>` : '<span style="color:var(--muted);">—</span>'}</td>
+      <td class="num">${a.cobrado}</td>
+      <td class="num">${a.cartVencidaNum > 0 ? `<span style="color:var(--danger);font-weight:600;">${a.cartVencida}</span>` : '<span style="color:var(--muted);">$0</span>'}</td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML += `<tr class="total-row">
+    <td>TOTAL</td>
+    <td class="num">24</td>
+    <td class="num">$158,346,347</td>
+    <td class="num">4</td>
+    <td class="num">2</td>
+    <td class="num">$18,893,480</td>
+    <td class="num" style="color:#fca5a5;">$5,028,644</td>
+  </tr>`;
+}
+
+// ============================================================
+// KANAT 2 — DASHBOARD
+// ============================================================
+function renderK2Dashboard() {
+  // Ventas por asesor bar chart
+  const asesorEl = document.getElementById('k2-dash-asesor-chart');
+  if (!asesorEl) return;
+  const maxV = Math.max(...K2_ASESORES.map(a => a.ventas));
+  const colors = ['#AADB1E','#0032A0','#E5007E','#AADB1E','#0032A0'];
+  asesorEl.innerHTML = K2_ASESORES.map((a, i) => {
+    const barW = Math.round((a.ventas / maxV) * 100);
+    const name = a.asesor.split(' ').slice(0,2).join(' ');
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;color:var(--muted);width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+      <div style="flex:1;height:14px;background:#f0f0ee;border-radius:1px;">
+        <div style="width:${barW}%;height:100%;background:${colors[i%colors.length]};border-radius:1px;"></div>
+      </div>
+      <div style="font-family:'PT Mono',monospace;font-size:10px;font-weight:bold;color:${colors[i%colors.length]};width:18px;text-align:right;">${a.ventas}</div>
+    </div>`;
+  }).join('');
+
+  // Cartera vencida top chart
+  const vencidaEl = document.getElementById('k2-dash-vencida-chart');
+  if (!vencidaEl) return;
+  const topV = [...K2_COBRANZA].filter(c => c.cartVencidaNum > 0).sort((a,b) => b.cartVencidaNum - a.cartVencidaNum).slice(0,8);
+  const maxVn = topV.length > 0 ? topV[0].cartVencidaNum : 1;
+  vencidaEl.innerHTML = topV.map(c => {
+    const barW = Math.round((c.cartVencidaNum / maxVn) * 100);
+    const name = c.cliente.split(' ').slice(0,3).join(' ');
+    const amt  = '$' + Math.round(c.cartVencidaNum).toLocaleString('en-US');
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;color:var(--muted);width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+      <div style="flex:1;height:14px;background:#fef2f2;border-radius:1px;">
+        <div style="width:${barW}%;height:100%;background:var(--danger);border-radius:1px;"></div>
+      </div>
+      <div style="font-family:'PT Mono',monospace;font-size:9px;font-weight:bold;color:var(--danger);width:72px;text-align:right;">${amt}</div>
+    </div>`;
+  }).join('');
+}
 </script>
 
 <footer>
