@@ -238,8 +238,10 @@
   .tab:hover { color: var(--text); }
   .tab.active { color: #000000; border-bottom-color: var(--qorus-green); font-weight: bold; }
 
-  .project-switcher { display:flex; align-items:center; padding:0 16px 0 0; margin-right:8px; border-right:2px solid var(--border); }
-  .project-select { font-family:'PT Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; border:1px solid var(--border); outline:none; background:#000; color:#fff; cursor:pointer; padding:5px 10px; font-weight:bold; border-radius:2px; }
+  .header-center { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .header-project-label { font-family:'PT Mono',monospace; font-size:8px; color:#555; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+  .header-project-select { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:3px; text-transform:uppercase; border:none; border-bottom:2px solid var(--qorus-green); outline:none; background:transparent; color:#fff; cursor:pointer; padding:2px 24px 2px 4px; appearance:none; -webkit-appearance:none; }
+  .header-project-select option { background:#111; color:#fff; font-family:'PT Mono',monospace; font-size:13px; }
   #tabs-qorus, #tabs-kanat2 { display:flex; gap:0; }
 
   main { padding: 28px 32px; }
@@ -486,6 +488,13 @@
       <div class="header-tagline">AL RITMO DE CIUDAD · MTY, NL, MEX</div>
       <div class="header-report">REPORTE SEMANAL · JUNTA COMERCIAL</div>
     </div>
+    <div class="header-center">
+      <div class="header-project-label">Proyecto</div>
+      <select id="project-select" class="header-project-select" onchange="switchProject(this.value)">
+        <option value="qorus">QORUS</option>
+        <option value="kanat2">KANAT T2</option>
+      </select>
+    </div>
     <div class="header-right">
       <div class="header-date">08 JUNIO 2026</div>
       <div class="header-conf">Uso interno · Confidencial</div>
@@ -537,12 +546,6 @@
 </div>
 
 <nav>
-  <div class="project-switcher">
-    <select id="project-select" class="project-select" onchange="switchProject(this.value)">
-      <option value="qorus">QORUS</option>
-      <option value="kanat2">KANAT T2</option>
-    </select>
-  </div>
   <div id="tabs-qorus">
     <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
     <div class="tab" onclick="showTab('ventas')">Ventas <span style="color:var(--muted);font-weight:normal;">(59)</span></div>
@@ -554,6 +557,7 @@
   <div id="tabs-kanat2" style="display:none">
     <div class="tab active" onclick="showK2Tab('k2-dashboard')">Dashboard</div>
     <div class="tab" onclick="showK2Tab('k2-ventas')">Ventas <span style="color:var(--muted);font-weight:normal;">(24)</span></div>
+    <div class="tab" onclick="showK2Tab('k2-separaciones')">Separaciones <span style="color:var(--muted);font-weight:normal;" id="k2-sep-count">(0)</span></div>
     <div class="tab" onclick="showK2Tab('k2-cartera')">Cobranza <span style="color:var(--muted);font-weight:normal;">(24)</span></div>
     <div class="tab" onclick="showK2Tab('k2-asesor')">Por Asesor</div>
   </div>
@@ -802,10 +806,14 @@
 
 <!-- K2 DASHBOARD -->
 <div id="k2-dashboard" class="panel active">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
     <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--qorus-green);border-radius:3px;padding:18px;">
       <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— Ventas por Asesor</div>
       <div id="k2-dash-asesor-chart"></div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--qorus-blue);border-radius:3px;padding:18px;">
+      <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— Ventas por Mes</div>
+      <div id="k2-dash-mes-chart"></div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--danger);border-radius:3px;padding:18px;">
       <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px;">— Cartera Vencida · Top 8</div>
@@ -842,6 +850,32 @@
         <th>F. Escritur.</th>
       </tr></thead>
       <tbody id="k2-ventas-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- K2 SEPARACIONES -->
+<div id="k2-separaciones" class="panel">
+  <div class="section-header">
+    <div><span class="section-title">Separaciones Kanat Torre 2</span><span class="section-count" id="k2-sep-display-count">(0)</span></div>
+    <div class="toolbar">
+      <button class="btn btn-sm" onclick="exportTable('k2-sep-table','Separaciones_Kanat2')">Exportar CSV</button>
+    </div>
+  </div>
+  <div class="table-wrap" style="max-height:600px;overflow-y:auto;">
+    <table id="k2-sep-table">
+      <thead><tr>
+        <th>#</th>
+        <th>Unidad</th>
+        <th>Cliente</th>
+        <th>Asesor</th>
+        <th class="num">Monto Sep.</th>
+        <th>F. Separación</th>
+        <th class="num">Días</th>
+        <th>Estatus</th>
+        <th>F. Escrituración</th>
+      </tr></thead>
+      <tbody id="k2-sep-body"></tbody>
     </table>
   </div>
 </div>
@@ -1850,6 +1884,12 @@ const K2_ASESORES = [
   {asesor:"Leonel III Sáenz Villareal",ventas:1, valorNum:7650309,  valor:"$7,650,309",  ventasMayo:0, ventasJun:0, cobradoNum:1540975, cobrado:"$1,540,975", cartVencidaNum:39690,   cartVencida:"$39,690"},
 ];
 
+// Separaciones activas Kanat T2 — agregar registros aquí cuando existan
+const K2_SEP_CLIENTES = [
+  // Ejemplo de estructura:
+  // {n:1, unidad:"XXX", cliente:"Nombre Apellido", asesor:"Asesor", monto:"$20,000", fecha:"01/06/2026", dias:"9", estatus:"✔ Activa", fescritur:"31/05/2028"},
+];
+
 let filteredK2Ventas  = [...K2_VENTAS];
 let filteredK2Cartera = [...K2_COBRANZA];
 let soloK2Vencida     = false;
@@ -1881,10 +1921,11 @@ function showK2Tab(tab) {
   document.querySelectorAll('#section-kanat2 .panel').forEach(p => p.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById(tab).classList.add('active');
-  if (tab === 'k2-dashboard') renderK2Dashboard();
-  if (tab === 'k2-ventas')    renderK2Ventas();
-  if (tab === 'k2-cartera')   renderK2Cartera();
-  if (tab === 'k2-asesor')    renderK2Asesor();
+  if (tab === 'k2-dashboard')    renderK2Dashboard();
+  if (tab === 'k2-ventas')       renderK2Ventas();
+  if (tab === 'k2-separaciones') renderK2Separaciones();
+  if (tab === 'k2-cartera')      renderK2Cartera();
+  if (tab === 'k2-asesor')       renderK2Asesor();
 }
 
 // ============================================================
@@ -2040,6 +2081,30 @@ function renderK2AsesorBody() {
 // ============================================================
 // KANAT 2 — DASHBOARD
 // ============================================================
+function renderK2Separaciones() {
+  const tbody = document.getElementById('k2-sep-body');
+  const n = K2_SEP_CLIENTES.length;
+  const countEl = document.getElementById('k2-sep-count');
+  if (countEl) countEl.textContent = `(${n})`;
+  const dispEl = document.getElementById('k2-sep-display-count');
+  if (dispEl) dispEl.textContent = `(${n})`;
+  if (n === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:48px 0;font-family:'PT Mono',monospace;font-size:11px;letter-spacing:1.5px;">SIN SEPARACIONES ACTIVAS</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = K2_SEP_CLIENTES.map(s => `<tr>
+    <td class="center" style="color:var(--muted);font-size:11px;">${s.n}</td>
+    <td><strong style="font-family:'PT Mono',monospace;font-size:11px;">${s.unidad}</strong></td>
+    <td>${s.cliente}</td>
+    <td style="font-size:11px;">${s.asesor}</td>
+    <td class="num">${s.monto}</td>
+    <td style="font-size:11px;">${s.fecha}</td>
+    <td class="num">${s.dias}</td>
+    <td><span style="font-size:11px;color:${s.estatus.includes('⚠')?'var(--warn)':'var(--ok)'};">${s.estatus}</span></td>
+    <td style="font-size:11px;color:var(--muted);">${s.fescritur}</td>
+  </tr>`).join('');
+}
+
 function renderK2Dashboard() {
   // Ventas por asesor bar chart
   const asesorEl = document.getElementById('k2-dash-asesor-chart');
@@ -2057,6 +2122,36 @@ function renderK2Dashboard() {
       <div style="font-family:'PT Mono',monospace;font-size:10px;font-weight:bold;color:${colors[i%colors.length]};width:18px;text-align:right;">${a.ventas}</div>
     </div>`;
   }).join('');
+
+  // Ventas por mes
+  const mesEl = document.getElementById('k2-dash-mes-chart');
+  if (mesEl) {
+    const meses = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const byMes = {};
+    K2_VENTAS.forEach(v => {
+      const parts = v.fventa.split('/');
+      const m = parseInt(parts[1]), y = parts[2];
+      const key = `${y}-${String(m).padStart(2,'0')}`;
+      const label = meses[m] + ' ' + y.slice(2);
+      if (!byMes[key]) byMes[key] = {label, n:0};
+      byMes[key].n++;
+    });
+    const sorted = Object.entries(byMes).sort((a,b) => a[0].localeCompare(b[0]));
+    const maxN = Math.max(...sorted.map(([,v]) => v.n));
+    const paleta = ['#AADB1E','#0032A0','#E5007E','#AADB1E','#0032A0','#E5007E','#888888'];
+    mesEl.innerHTML = sorted.map(([key, v], i) => {
+      const barW = Math.round((v.n / maxN) * 100);
+      const cur = key === '2026-06';
+      const col = cur ? 'var(--qorus-green)' : paleta[i % paleta.length];
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+        <div style="font-family:'PT Mono',monospace;font-size:9px;color:${cur?'#fff':'var(--muted)'};width:46px;${cur?'font-weight:bold;':''}">${v.label}</div>
+        <div style="flex:1;height:12px;background:#f0f0ee;border-radius:1px;">
+          <div style="width:${barW}%;height:100%;background:${col};border-radius:1px;"></div>
+        </div>
+        <div style="font-family:'PT Mono',monospace;font-size:10px;font-weight:bold;color:${col};width:14px;text-align:right;">${v.n}</div>
+      </div>`;
+    }).join('');
+  }
 
   // Cartera vencida top chart
   const vencidaEl = document.getElementById('k2-dash-vencida-chart');
