@@ -594,6 +594,11 @@
     </div>
 
   </div>
+
+  <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--qorus-blue);border-radius:3px;padding:18px;">
+    <div style="font-family:'PT Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px;">— Ventas por Mes · Detalle <span style="color:var(--qorus-green);margin-left:8px;">✓ Confirmadas</span> <span style="color:#92400e;margin-left:8px;">⚠ En QO = no confirmadas</span></div>
+    <div id="dash-detalle-mes"></div>
+  </div>
 </div>
 
 <!-- VENTAS -->
@@ -1739,6 +1744,66 @@ function renderDashboard() {
       </div>
     </div>
   `).join('') + `<div style="margin-top:10px;font-family:'PT Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.5px;">+ 10 Lobo Inversionistas (André Aguila)</div>`;
+
+  // Ventas por mes — detalle con filtro QO
+  const detEl = document.getElementById('dash-detalle-mes');
+  if (!detEl) return;
+  const MESES_FULL = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const parsePrecio = s => parseInt(String(s).replace(/[$,]/g,'')) || 0;
+  // Unidades en QO con estatus pendiente (no Firmado)
+  const QO_PENDING = new Set(QO.filter(q => q.estatus !== 'Firmado').map(q => q.unidad));
+  const byMes = {};
+  VENTAS.forEach(v => {
+    const p = v.fventa.split('/');
+    const m = parseInt(p[1]), y = p[2];
+    const key = `${y}-${String(m).padStart(2,'0')}`;
+    const label = MESES_FULL[m].toUpperCase() + ' ' + y;
+    if (!byMes[key]) byMes[key] = {label, ventas:[], confirmed:0, totalConfirmed:0};
+    const isQO = QO_PENDING.has(v.unidad);
+    byMes[key].ventas.push({...v, isQO});
+    if (!isQO) { byMes[key].confirmed++; byMes[key].totalConfirmed += parsePrecio(v.precio); }
+  });
+  const sorted = Object.entries(byMes).sort((a,b) => b[0].localeCompare(a[0]));
+  const curKey = sorted.length > 0 ? sorted[0][0] : '';
+  detEl.innerHTML = sorted.map(([key, mes]) => {
+    const isCur = key === curKey;
+    const totalFmt = '$' + Math.round(mes.totalConfirmed).toLocaleString('en-US');
+    const qoCount = mes.ventas.length - mes.confirmed;
+    const qoNote = qoCount > 0
+      ? `<span style="font-family:'PT Mono',monospace;font-size:9px;color:#92400e;background:#fff3cd;padding:2px 6px;border-radius:2px;margin-left:8px;">${qoCount} en QO · no confirmada${qoCount>1?'s':''}</span>`
+      : '';
+    const rows = mes.ventas.map(v => {
+      const inQO = v.isQO;
+      const rs   = inQO ? 'opacity:0.55;' : '';
+      const pc   = inQO ? 'color:var(--muted);' : '';
+      const badge = inQO ? `<span style="display:inline-block;background:#fff3cd;color:#92400e;border-radius:2px;padding:1px 5px;font-family:'PT Mono',monospace;font-size:9px;margin-left:6px;">EN QO</span>` : '';
+      return `<tr style="${rs}">
+        <td><strong style="font-family:'PT Mono',monospace;font-size:11px;">${v.unidad}</strong></td>
+        <td style="font-size:12px;">${v.cliente}${badge}</td>
+        <td style="font-size:11px;color:var(--muted);">${v.asesor}</td>
+        <td class="num" style="font-weight:600;${pc}">${v.precio}</td>
+        <td class="num" style="font-size:11px;"><span style="font-family:'PT Mono',monospace;background:var(--accent-light);padding:2px 5px;border-radius:2px;">${v.eng}</span></td>
+        <td class="num" style="font-size:11px;"><span style="font-family:'PT Mono',monospace;background:var(--accent-light);padding:2px 5px;border-radius:2px;">${v.cons}</span></td>
+        <td class="num" style="font-size:11px;"><span style="font-family:'PT Mono',monospace;background:var(--accent-light);padding:2px 5px;border-radius:2px;">${v.esc}</span></td>
+        <td class="num" style="font-size:11px;">${v.cobrado}</td>
+      </tr>`;
+    }).join('');
+    return `<div style="margin-bottom:24px;">
+      <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid ${isCur?'var(--qorus-green)':'var(--border)'};">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:${isCur?'var(--qorus-green-dark)':'var(--text)'};">${mes.label}</div>
+        <div style="font-family:'PT Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;">${mes.confirmed} ${mes.confirmed===1?'VENTA':'VENTAS'} · ${totalFmt}${qoNote}</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:66px;">Unidad</th><th>Cliente</th><th>Asesor</th>
+            <th class="num">Precio Venta</th><th class="num">Eng.</th><th class="num">Cons.</th><th class="num">Esc.</th><th class="num">Cobrado</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ============================================================
